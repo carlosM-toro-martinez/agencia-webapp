@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import PDFReport from "./PDFReport";
 import { MainContext } from "../../../context/MainContext";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 
 const RegistroTableComponent = ({
   registroCombinado,
@@ -91,8 +92,13 @@ const RegistroTableComponent = ({
       )}
 
       <TableContainer component={Paper}>
-        <Table>
-          <TableHead style={{ backgroundColor: "#3d97ef" }}>
+        <Table style={{
+          maxHeight: "40vh", 
+          overflowY: "auto",
+          display: 'block',
+          width: '100%',
+        }}>
+          <TableHead style={{ backgroundColor: "#3d97ef", width: '100%' }}>
             <TableRow>
               <TableCell style={{ color: "#fff" }}>Producto</TableCell>
               <TableCell style={{ color: "#fff" }}>Fecha Caducidad</TableCell>
@@ -100,12 +106,13 @@ const RegistroTableComponent = ({
               <TableCell style={{ color: "#fff" }}>Cantidad</TableCell>
               <TableCell style={{ color: "#fff" }}>Precio Unitario</TableCell>
               <TableCell style={{ color: "#fff" }}>Precio Total</TableCell>
+              <TableCell style={{ color: "#fff" }}>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {buyLote.map((registro, index) => (
               <TableRow key={index}>
-                <TableCell>{registro?.producto?.nombre}</TableCell>
+                <TableCell style={{textTransform: 'capitalize'}} >{registro?.producto?.nombre}</TableCell>
                 <TableCell>
                   {new Date(registro?.fecha_caducidad).toLocaleDateString()}
                 </TableCell>
@@ -129,22 +136,27 @@ const RegistroTableComponent = ({
                     : calcularPrecioTotal(registro, true).toFixed(2)}{" "}
                   Bs
                 </TableCell>
+                <TableCell>
+                    <Button onClick={() => handleDelete(index)}>
+                      <DeleteOutlineOutlinedIcon />
+                    </Button>
+                </TableCell>
               </TableRow>
             ))}
-            <TableRow>
-              <TableCell
-                colSpan={5}
-                align="right"
-                style={{ fontWeight: "bold" }}
-              >
-                Suma Total:
-              </TableCell>
-              <TableCell style={{ fontWeight: "bold" }}>
-                {calcularSumaTotal().toFixed(2)} Bs
-              </TableCell>
-            </TableRow>
           </TableBody>
         </Table>
+        <TableRow>
+          <TableCell
+            colSpan={5}
+            align="right"
+            style={{ fontWeight: "bold", fontSize: '2rem' }}
+          >
+            Suma Total:
+          </TableCell>
+          <TableCell style={{ fontWeight: "bold", fontSize: '2rem' }}>
+            {calcularSumaTotal().toFixed(2)} Bs
+          </TableCell>
+        </TableRow>
       </TableContainer>
       <Box style={{ display: "flex", justifyContent: "center", gap: 10 }}>
         <Button

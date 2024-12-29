@@ -12,6 +12,7 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 import UndoIcon from "@mui/icons-material/Undo";
 import MoveUpIcon from "@mui/icons-material/MoveUp";
 import ReceiptIcon from "@mui/icons-material/Receipt";
+import CurrencyExchangeIcon from '@mui/icons-material/CurrencyExchange';
 import { Box } from "@mui/material";
 
 function DashboardInicioComponent() {
@@ -72,6 +73,11 @@ function DashboardInicioComponent() {
       title: "MOVIMIENTOS",
       icon: <MoveUpIcon sx={{ fontSize: "5rem" }} />,
       path: "/movimiento-inventario", // Ruta actualizada
+    },
+    {
+      title: "VENTAS POR PAGAR",
+      icon: <CurrencyExchangeIcon sx={{ fontSize: "5rem" }} />,
+      path: "/ventas_por_pagar", 
     },
   ];
 

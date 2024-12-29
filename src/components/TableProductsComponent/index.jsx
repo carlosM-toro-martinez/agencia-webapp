@@ -20,6 +20,8 @@ import ModalUpdateProduct from "./ModalUpdateProduct";
 import ModalViewProduct from "./ModalViewProduct";
 import useStyles from "./table.styles";
 import productoDeleteServices from "../../async/services/delete/productoDeleteServices";
+import { useMutation } from "react-query";
+import detalleCompraUpdateServices from "../../async/services/put/detalleCompraUpdateServices";
 
 const ITEM_HEIGHT = 48;
 
@@ -35,6 +37,8 @@ export default function TableProductsComponent({ productos, refetchProducts }) {
   const [openViewModal, setOpenViewModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedidProducto, setSelectedIdProduct] = useState(null);
+  const [editingRow, setEditingRow] = useState(null); // Para rastrear la fila en edición
+  const [editedPrice, setEditedPrice] = useState("");
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -88,6 +92,23 @@ export default function TableProductsComponent({ productos, refetchProducts }) {
     productoDeleteServices(selectedidProducto);
     handleCloseMenu();
   };
+
+  const { mutate } = useMutation(
+    ({ id, updatedPrice }) =>
+      detalleCompraUpdateServices(id, { precio_unitario: updatedPrice }),
+    {
+      onSuccess: () => {
+        handleCloseModals();
+        console.log("Detalle de compra actualizado exitosamente");
+      },
+      onError: (error) => {
+        console.error(
+          "Error al actualizar el detalle de compra:",
+          error.message
+        );
+      },
+    }
+  );
 
   return (
     <Box className={classes.root}>
@@ -225,6 +246,11 @@ export default function TableProductsComponent({ productos, refetchProducts }) {
         <ModalViewProduct
           product={selectedProduct}
           handleClose={handleCloseModals}
+          editingRow={editingRow}
+          setEditingRow={setEditingRow}
+          editedPrice={editedPrice}
+          setEditedPrice={setEditedPrice}
+          mutate={mutate}
         />
       )}
     </Box>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogActions,
@@ -16,9 +16,19 @@ import {
   Typography,
 } from "@material-ui/core";
 import productosInventarioService from "../../../async/services/get/productosInventarioService";
-import { useQuery } from "react-query";
+import { useMutation, useQuery } from "react-query";
+import { TextField } from "@mui/material";
+import detalleCompraUpdateServices from "../../../async/services/put/detalleCompraUpdateServices";
 
-function ModalViewProduct({ handleClose, product }) {
+function ModalViewProduct({
+  handleClose,
+  product,
+  editingRow,
+  setEditingRow,
+  editedPrice,
+  setEditedPrice,
+  mutate,
+}) {
   const { data, isLoading, error } = useQuery(
     `InventarioProducts`,
     () => productosInventarioService(product?.id_producto),
@@ -55,6 +65,24 @@ function ModalViewProduct({ handleClose, product }) {
   if (!data) {
     return null;
   }
+  const handleEdit = (index, precioActual) => {
+    setEditingRow(index);
+    setEditedPrice(precioActual);
+  };
+
+  const handleSave = (index) => {
+    const item = data.inventarios[index].detalleCompra.id_detalle;
+
+    if (item && editedPrice) {
+      mutate({ id: item, updatedPrice: parseFloat(editedPrice) }); // Llama a mutate con los datos
+    }
+    setEditingRow(null);
+  };
+
+  const handleCancel = () => {
+    setEditingRow(null);
+    setEditedPrice("");
+  };
 
   return (
     <Dialog open={true} onClose={handleClose}>
@@ -82,6 +110,12 @@ function ModalViewProduct({ handleClose, product }) {
                 </TableCell>
                 <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
                   Ingreso
+                </TableCell>
+                <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
+                  Precio de compra
+                </TableCell>
+                <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
+                  Editar precio
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -121,6 +155,43 @@ function ModalViewProduct({ handleClose, product }) {
                       .split("-")
                       .reverse()
                       .join("/")}
+                  </TableCell>
+                  <TableCell>
+                    {editingRow === index ? (
+                      <TextField
+                        value={editedPrice}
+                        onChange={(e) => setEditedPrice(e.target.value)}
+                        type="number"
+                        variant="outlined"
+                        size="small"
+                        sx={{ width: "100px", height: "56px" }} // Cambia los valores según el tamaño que desees
+                      />
+                    ) : (
+                      inventario.detalleCompra.precio_unitario
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {editingRow === index ? (
+                      <>
+                        <Button onClick={() => handleSave(index)}>
+                          Guardar
+                        </Button>
+                        <Button onClick={handleCancel} color="error">
+                          Cancelar
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        onClick={() =>
+                          handleEdit(
+                            index,
+                            inventario.detalleCompra.precio_unitario
+                          )
+                        }
+                      >
+                        Editar
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

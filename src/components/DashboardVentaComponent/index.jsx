@@ -11,6 +11,8 @@ import { getLocalDateTime } from "../../utils/getDate";
 import ventaAddService from "../../async/services/post/ventaAddService";
 import ventaDetalleAddService from "../../async/services/post/ventaDetalleAddService";
 import { MainContext } from "../../context/MainContext";
+import CalcChangeComponent from "./CalcChangeComponent";
+import { JoinFullSharp } from "@mui/icons-material";
 
 function DashboardVentaComponent({
   products,
@@ -420,6 +422,7 @@ function DashboardVentaComponent({
       console.log(productosSeleccionados);
       ventaMutation.mutate();
       setShouldMutate(false);
+      setPrecio();
     }
   }, [isProcessing, shouldMutate, productosSeleccionados]);
 
@@ -494,9 +497,9 @@ function DashboardVentaComponent({
       <Box
         style={{
           margin: "2rem 0 2rem 0",
-          width: "100%",
           display: "flex",
-          justifyContent: "center",
+          justifyContent: 'space-around',
+          alignItems: 'center',
         }}
       >
         <Button
@@ -507,6 +510,8 @@ function DashboardVentaComponent({
         >
           {ventaMutation.isLoading ? "Registrando..." : "Registrar Venta"}
         </Button>
+        <CalcChangeComponent totalVenta={totalPrice} />
+
       </Box>
 
       <ClientModal

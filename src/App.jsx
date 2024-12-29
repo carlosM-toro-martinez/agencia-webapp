@@ -23,6 +23,7 @@ import MovimientoInventario from "./pages/MovimientoInventario";
 import CreateMovementInventario from "./pages/MovimientoInventario/CreateMovementInventario";
 import { Box } from "@mui/material";
 import Theme from "./theme/Theme";
+import VentasPorPagar from "./pages/VentasPorPagar";
 
 function App() {
   const queryClient = new QueryClient();
@@ -102,6 +103,10 @@ function App() {
                 <Route path="" element={<Ventas />} />
                 <Route path="crear" element={<CreateVenta />} />
               </Route>
+              <Route
+                path="/ventas_por_pagar"
+                element={<VentasPorPagar />}
+              />
               <Route path="/" element={<Inicio />} />
               <Route path="/login" element={<LoginComponent />} />
               <Route
