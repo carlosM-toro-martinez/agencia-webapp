@@ -33,7 +33,8 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: "#fff",
   },
   tableHeader: {
-    backgroundColor: "#3d97ef",
+    backgroundColor: "#f5f5f5",
+    textAlign: "center",
   },
   tableHeadText: {
     color: "#fff",

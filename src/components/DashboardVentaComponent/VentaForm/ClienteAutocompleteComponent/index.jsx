@@ -53,7 +53,7 @@ const ClienteAutocompleteComponent = ({
         )}
         style={{ width: "100%" }}
       />
-      { handleOpenClientModal ? <Button
+      <Button
         onClick={handleOpenClientModal}
         style={{
           display: "flex",
@@ -62,7 +62,7 @@ const ClienteAutocompleteComponent = ({
         }}
       >
         <AddCircleOutlineIcon color="error" />
-      </Button> : null}
+      </Button>
     </FormControl>
   );
 };

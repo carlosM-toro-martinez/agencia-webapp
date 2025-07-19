@@ -1,20 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Grid,
-  Button,
   Box,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  Autocomplete,
-  TextField,
-  Typography,
 } from "@mui/material";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import ProductSelectedComponent from "./ProductSelectedComponent";
-import ClienteAutocompleteComponent from "./ClienteAutocompleteComponent";
-import ProductoAutocompleteComponent from "./ProductoAutocompleteComponent";
 
 const VentaForm = ({
   ventaData,
@@ -23,18 +16,13 @@ const VentaForm = ({
   productos,
   setProducto,
   setCliente,
-  addProducto,
   handleOpenClientModal,
   productosSeleccionados,
   setProductosSeleccionados,
-  lote,
   setLote,
   setCancelForm,
-  cantLimit,
   setCantLimit,
-  cantUnitLimit,
   setCantUnitLimit,
-  pesoLimit,
   setPesoLimit,
   removeProducto,
   setTotalPrice,
@@ -42,6 +30,8 @@ const VentaForm = ({
   setProductosDetallados,
   metodoPago,
   setMetodoPago,
+  movimientoInventario,
+  totalPrice,
 }) => {
   const [lotesProducto, setLotesProducto] = useState([]);
   const [peso, setPeso] = useState("");
@@ -62,20 +52,24 @@ const VentaForm = ({
   }, [clientes]);
 
   const handleProductoChange = (productoId, newValue) => {
-    setMetodosVenta(newValue?.inventarios[0].lote?.producto?.metodosVenta);
+    setMetodosVenta(newValue?.inventarios[0]?.lote?.producto?.metodosVenta);
 
     setProducto(productoId);
 
     const lotesFiltrados =
-      productos
-        .find((producto) => producto.id_producto === productoId)
-        ?.inventarios.filter((inv) => inv.cantidad >= 1 || inv.peso > 0)
+      newValue?.inventarios
+        .filter((inv) => inv.cantidad >= 1 || inv.peso > 0)
         .map((inv) => inv) || [];
 
     setLotesProducto(lotesFiltrados);
     setCantLimit(lotesFiltrados[0]?.lote?.producto?.stock);
     setCantUnitLimit(lotesFiltrados[0]?.lote?.producto?.subCantidad);
-    setPesoLimit(lotesFiltrados[0]?.lote?.producto?.peso);
+    setPesoLimit(
+      lotesFiltrados[0]?.lote?.producto?.peso === "NaN" ||
+        !lotesFiltrados[0]?.lote?.producto?.peso
+        ? 0
+        : lotesFiltrados[0]?.lote?.producto?.peso
+    );
 
     setCantidadPorCaja(
       lotesFiltrados[0]?.lote?.cantidadPorCaja
@@ -84,21 +78,24 @@ const VentaForm = ({
     );
 
     if (lotesFiltrados.length > 0) {
-      const loteMasAntiguo = lotesFiltrados.reduce((prev, current) => {
+      const loteMasAntiguo = newValue?.inventarios?.reduce((prev, current) => {
         const prevDate = new Date(prev.lote.fecha_caducidad);
         const currentDate = new Date(current.lote.fecha_caducidad);
         return currentDate < prevDate ? current : prev;
       });
 
       setProductosDetallados((prev) => [
-        ...prev,
         {
           productoId,
           newValue,
           lotesFiltrados,
           cantLimit: lotesFiltrados[0]?.lote?.producto?.stock,
           cantUnitLimit: lotesFiltrados[0]?.lote?.producto?.subCantidad,
-          pesoLimit: lotesFiltrados[0]?.lote?.producto?.peso,
+          pesoLimit:
+            lotesFiltrados[0]?.lote?.producto?.peso === "NaN" ||
+            !lotesFiltrados[0]?.lote?.producto?.peso
+              ? 0
+              : lotesFiltrados[0]?.lote?.producto?.peso,
           cantidadPorCaja: lotesFiltrados[0]?.lote?.cantidadPorCaja || null,
           loteMasAntiguo: loteMasAntiguo,
           peso: lotesFiltrados[0]?.lote?.producto?.peso > 0 ? 1 : null,
@@ -108,20 +105,14 @@ const VentaForm = ({
               ? 1
               : null,
           cantidadPorUnidad:
-            lotesFiltrados[0]?.lote?.producto?.subCantidad > 0 &&
-            lotesFiltrados[0]?.lote?.producto?.peso <= 0
+            (lotesFiltrados[0]?.lote?.producto?.subCantidad > 0 &&
+              lotesFiltrados[0]?.lote?.producto?.peso <= 0) ||
+            lotesFiltrados[0]?.lote?.producto?.peso === "NaN"
               ? 1
               : null,
           ventaData,
-          metodosVenta: newValue?.inventarios[0].lote?.producto?.metodosVenta,
-          cantidadMetodo:
-            Array.isArray(
-              newValue?.inventarios[0].lote?.producto?.metodosVenta
-            ) &&
-            newValue?.inventarios[0].lote?.producto?.metodosVenta.length > 0
-              ? 1
-              : null,
         },
+        ...prev,
       ]);
       handleLoteChange(loteMasAntiguo?.lote?.id_lote, lotesFiltrados);
       setCantLote(loteMasAntiguo);
@@ -174,13 +165,46 @@ const VentaForm = ({
 
   const productosUnicos = [
     ...new Map(
-      productos.map((producto) => [producto.id_producto, producto])
+      productos?.map((producto) => [producto.id_producto, producto])
     ).values(),
   ];
+  console.log(productos);
 
-  const productosUnicosFiltrados = productosUnicos.filter(
-    (producto) => producto.inventarios.length > 0
-  );
+  // const productosUnicosFiltrados = productos.flatMap((producto) => {
+  //   const mapaProveedores = new Map();
+  //   producto.inventarios.forEach((inv) => {
+  //     const prov = inv.lote.detalleCompra.proveedor;
+  //     mapaProveedores.set(prov.id_proveedor, prov);
+  //   });
+
+  //   const data = Array.from(mapaProveedores.values()).map((proveedor) => {
+  //     const inventariosDelProveedor = producto.inventarios.filter(
+  //       (inv) =>
+  //         inv.lote.detalleCompra.proveedor.id_proveedor ===
+  //         proveedor.id_proveedor
+  //     );
+  //     const loteMasAntiguo = inventariosDelProveedor?.reduce(
+  //       (prev, current) => {
+  //         const prevDate = new Date(prev.lote.fecha_caducidad);
+  //         const currentDate = new Date(current.lote.fecha_caducidad);
+  //         return currentDate < prevDate ? current : prev;
+  //       }
+  //     );
+  //     return {
+  //       id_producto: producto.id_producto,
+  //       nombre: producto.nombre,
+  //       codigo_barra: producto.codigo_barra,
+  //       forma_farmaceutica: producto.forma_farmaceutica,
+  //       concentracion: producto.concentracion,
+  //       uso_res: producto.uso_res,
+  //       proveedor,
+  //       inventarios: inventariosDelProveedor,
+  //     };
+  //   });
+  //   return data;
+  // });
+
+  //console.log(productos);
 
   return (
     <Box sx={{ padding: 2 }}>
@@ -209,24 +233,6 @@ const VentaForm = ({
               </FormControl>
             </Grid>
           )}
-
-          {/* {pesoLimit > 0 && (
-            <Grid item xs={12} sm={6}>
-              <TextField
-                id="outlined-number"
-                label="Precio"
-                type="number"
-                value={precio}
-                onChange={(e) => setPrecio(e.target.value)}
-                slotProps={{
-                  inputLabel: {
-                    shrink: true,
-                  },
-                }}
-                fullWidth
-              />
-            </Grid>
-          )} */}
         </Grid>
       </form>
       <ProductSelectedComponent
@@ -240,12 +246,13 @@ const VentaForm = ({
         ventaData={ventaData}
         setCliente={setCliente}
         handleOpenClientModal={handleOpenClientModal}
-        productosUnicosFiltrados={productosUnicosFiltrados}
+        productosUnicosFiltrados={productos}
         handleProductoChange={handleProductoChange}
         setCantidad={setCantidad}
         setCantidadPorUnidad={setCantidadPorUnidad}
         metodoPago={metodoPago}
         setMetodoPago={setMetodoPago}
+        movimientoInventario={movimientoInventario}
       />
     </Box>
   );

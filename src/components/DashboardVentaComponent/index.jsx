@@ -1,18 +1,17 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { Button, Grid, Box, Snackbar, Typography } from "@mui/material";
 import Alert from "@mui/material/Alert";
 import { useMutation } from "react-query";
-import DenominacionForm from "./DenominacionForm";
 import ClientModal from "./ClientModal";
 import VentaForm from "./VentaForm";
 import useStyles from "./dashboardVenta.styles";
-import TableVentaComponent from "./TableVentaComponent";
 import { getLocalDateTime } from "../../utils/getDate";
-import ventaAddService from "../../async/services/post/ventaAddService";
-import ventaDetalleAddService from "../../async/services/post/ventaDetalleAddService";
 import { MainContext } from "../../context/MainContext";
-import CalcChangeComponent from "./CalcChangeComponent";
-import { JoinFullSharp } from "@mui/icons-material";
+import ventaCompletaService from "../../async/services/post/ventaCompletaService";
+import CalculatorComponent from "./VentaForm/CalculatorComponent";
+import salidaInventarioAddService from "../../async/services/post/salidaInventarioAddService";
+import TicketComponent from "./TicketComponent";
+import { useReactToPrint } from "react-to-print";
 
 function DashboardVentaComponent({
   products,
@@ -21,7 +20,11 @@ function DashboardVentaComponent({
   refetchClients,
   caja,
   refetchCaja,
+  movimientoInventario,
 }) {
+  const ventaFormRef = useRef(null);
+  const denominacionFormRef = useRef(null);
+
   const classes = useStyles();
   const { user } = useContext(MainContext);
 
@@ -32,15 +35,6 @@ function DashboardVentaComponent({
   const [precio, setPrecio] = useState();
   const [totalPrice, setTotalPrice] = useState();
   const [lote, setLote] = useState();
-
-  const [denominaciones, setDenominaciones] = useState([
-    { tipo_dinero: "billete", denominacion: 200, cantidad: 0 },
-    { tipo_dinero: "billete", denominacion: 100, cantidad: 0 },
-    { tipo_dinero: "billete", denominacion: 50, cantidad: 0 },
-    { tipo_dinero: "billete", denominacion: 20, cantidad: 0 },
-    { tipo_dinero: "moneda", denominacion: 5, cantidad: 0 },
-    { tipo_dinero: "moneda", denominacion: 1, cantidad: 0 },
-  ]);
 
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -66,7 +60,6 @@ function DashboardVentaComponent({
     producto,
     cliente,
     loteID,
-    peso,
     price,
     cantidadPorUnidad,
     cantidad
@@ -82,7 +75,6 @@ function DashboardVentaComponent({
           clienteId: cliente.id_cliente,
           clientePuntos: cliente.puntos_fidelidad,
           id_lote: loteID,
-          peso: peso ? peso : 0,
           precio: price,
           cantidad_unidad: cantidadPorUnidad ? cantidadPorUnidad : 0,
           cantidad: cantidad ? cantidad : 0,
@@ -108,8 +100,25 @@ function DashboardVentaComponent({
   };
 
   const ventaMutation = useMutation(
-    () =>
-      ventaAddService({
+    () => {
+      function buscarPorIdLote(array, idLote) {
+        return array.find((item) => item.lote && item.lote.id_lote === idLote);
+      }
+
+      function calcularCantidad(
+        cantidadPorCaja,
+        cantidadInventario,
+        cantidadVenta
+      ) {
+        let cantidad = 0;
+        if (cantidadPorCaja > cantidadVenta) {
+          cantidad = cantidadInventario === cantidadVenta ? 1 : 0;
+        } else {
+          cantidad = Math.floor(cantidadVenta / cantidadPorCaja);
+        }
+        return cantidad;
+      }
+      const payload = {
         ventaData: {
           fecha_venta: getLocalDateTime(),
           total: totalPrice,
@@ -120,62 +129,47 @@ function DashboardVentaComponent({
           metodo_pago: metodoPago,
         },
         id_caja: caja?.caja?.id_caja || 1,
-        denominaciones: denominaciones,
-      }),
+        detalles: productosSeleccionados.map((p) => ({
+          id_producto: p.id_producto,
+          id_lote: p.id_lote,
+          cantidad: calcularCantidad(
+            buscarPorIdLote(p.inventarios, p.id_lote)?.lote?.cantidadPorCaja,
+            buscarPorIdLote(p.inventarios, p.id_lote)?.subCantidad,
+            p.cantidad_unidad
+          ),
+          cantidad_unidad: p.cantidad_unidad,
+          descripcion: p.descripcion,
+          precio: p.precio,
+          clienteId: ventaData.clienteId,
+        })),
+      };
+
+      if (movimientoInventario) {
+        return salidaInventarioAddService(payload);
+      } else {
+        return ventaCompletaService(payload);
+      }
+    },
     {
       onSuccess: (response) => {
-        const idVenta = response?.newVenta?.id_venta;
-
-        detalleMutation
-          .mutateAsync(
-            productosSeleccionados.map((producto) => ({
-              ...producto,
-              id_venta: idVenta,
-            }))
-          )
-          .then(() => {
-            setSnackbar({
-              open: true,
-              message: "Venta realizada exitosamente!",
-              severity: "success",
-            });
-            refetchProducts();
-            refetchCaja();
-            if (cancelForm) {
-              cancelForm();
-            }
-            if (setRestoreDenom) {
-              setRestoreDenom();
-            }
-          })
-          .catch((error) => {
-            setSnackbar({
-              open: true,
-              message: `Error al agregar detalles de la venta: ${error.message}`,
-              severity: "error",
-            });
-          });
-      },
-      onError: (error) => {
         setSnackbar({
           open: true,
-          message: `Error al realizar la venta: ${error.message}`,
-          severity: "error",
+          message: movimientoInventario
+            ? "Movimiento realizado exitosamente!"
+            : "Venta realizada exitosamente!",
+          severity: "success",
         });
-      },
-    }
-  );
-
-  const detalleMutation = useMutation(
-    (productosSeleccionados) => ventaDetalleAddService(productosSeleccionados),
-    {
-      onSuccess: (response) => {
-        console.log("Detalles de la venta añadidos exitosamente:", response);
+        refetchProducts();
+        refetchCaja();
+        if (cancelForm) cancelForm();
+        if (setRestoreDenom) setRestoreDenom();
+        // handlePrint();
       },
       onError: (error) => {
+        setProductosSeleccionados([]);
         setSnackbar({
           open: true,
-          message: `Error al agregar detalles de la venta: ${error.message}`,
+          message: `Error al procesar la venta: ${error.message}`,
           severity: "error",
         });
       },
@@ -207,13 +201,16 @@ function DashboardVentaComponent({
     for (const item of productosDetallados) {
       const producto = item.newValue;
       const lotesProducto = item.lotesFiltrados;
-      const peso = item.peso || null;
-      const price = parseFloat(item.loteMasAntiguo.lote.producto.precio);
-      const cantidadPorUnidad = item.cantidadPorUnidad;
+      const price = parseFloat(item.newValue.precio);
+      const cantidadPorUnidad = item.newValue.metodoVentaBase
+        ? item.cantidadPorUnidad *
+          item.newValue.metodoVentaBase.cantidad_por_metodo
+        : item.cantidadPorUnidad;
       const cantidadPorCaja = item.cantidadPorCaja;
       const cantidad = item.cantidad;
       const metodoSeleccionado = item.metodoSeleccionado;
       const cantidadMetodo = item.cantidadMetodo;
+      const precioManual = item.precioManual;
 
       await procesarVenta(
         producto,
@@ -221,10 +218,10 @@ function DashboardVentaComponent({
         cantidadPorUnidad,
         cantidadPorCaja,
         price,
-        peso,
         cantidad,
         metodoSeleccionado,
-        cantidadMetodo
+        cantidadMetodo,
+        precioManual
       );
     }
 
@@ -238,10 +235,10 @@ function DashboardVentaComponent({
     cantidadPorUnidad,
     cantidadPorCaja,
     price,
-    peso,
     cantidad,
     metodoSeleccionado,
-    cantidadMetodo
+    cantidadMetodo,
+    precioManual
   ) => {
     const productoSeleccionado = products.find(
       (producto) => producto.id_producto === newValue.id_producto
@@ -259,9 +256,7 @@ function DashboardVentaComponent({
       ? Math.floor(cantidadPorUnidad / cantidadPorCaja)
       : cantidad;
 
-    let priceProduct =
-      precio || productoSeleccionado?.inventarios[0]?.lote?.producto?.precio;
-    if (!precio) setPrecio(priceProduct);
+    let priceProduct = precio || precioManual || price;
 
     const lotesOrdenados = lotesProducto.sort(
       (a, b) => a.lote.id_lote - b.lote.id_lote
@@ -316,7 +311,7 @@ function DashboardVentaComponent({
       );
     } else {
       switch (true) {
-        case cantidadPorUnidad && !peso && !cantidad:
+        case cantidadPorUnidad && !cantidad:
           procesarLotes(
             (loteData) => cantidadPorUnidad > 0,
             (loteData) => {
@@ -327,7 +322,6 @@ function DashboardVentaComponent({
                   productoSeleccionado,
                   clienteSeleccionado,
                   loteData.lote.id_lote,
-                  peso,
                   priceProduct,
                   loteData.subCantidad,
                   loteData.cantidad
@@ -337,7 +331,6 @@ function DashboardVentaComponent({
                   productoSeleccionado,
                   clienteSeleccionado,
                   loteData.lote.id_lote,
-                  peso,
                   priceProduct,
                   cantidadPorUnidad,
                   cajasRestantes
@@ -348,38 +341,7 @@ function DashboardVentaComponent({
           );
           break;
 
-        case peso && !cantidadPorUnidad && !cantidad:
-          procesarLotes(
-            (loteData) => peso > 0,
-            (loteData) => {
-              if (peso >= loteData.peso) {
-                peso -= loteData.peso;
-                addProducto(
-                  productoSeleccionado,
-                  clienteSeleccionado,
-                  loteData.lote.id_lote,
-                  loteData.peso,
-                  priceProduct,
-                  0,
-                  0
-                );
-              } else {
-                addProducto(
-                  productoSeleccionado,
-                  clienteSeleccionado,
-                  loteData.lote.id_lote,
-                  peso,
-                  priceProduct,
-                  0,
-                  0
-                );
-                peso = 0;
-              }
-            }
-          );
-          break;
-
-        case cantidad && !cantidadPorUnidad && !peso:
+        case cantidad && !cantidadPorUnidad:
           procesarLotes(
             (loteData) => cantidad > 0,
             (loteData) => {
@@ -389,7 +351,6 @@ function DashboardVentaComponent({
                   productoSeleccionado,
                   clienteSeleccionado,
                   loteData.lote.id_lote,
-                  peso,
                   priceProduct,
                   0,
                   loteData.cantidad
@@ -399,7 +360,6 @@ function DashboardVentaComponent({
                   productoSeleccionado,
                   clienteSeleccionado,
                   loteData.lote.id_lote,
-                  peso,
                   priceProduct,
                   0,
                   cantidad
@@ -419,12 +379,24 @@ function DashboardVentaComponent({
 
   useEffect(() => {
     if (!isProcessing && shouldMutate) {
-      console.log(productosSeleccionados);
       ventaMutation.mutate();
       setShouldMutate(false);
       setPrecio();
     }
   }, [isProcessing, shouldMutate, productosSeleccionados]);
+
+  useEffect(() => {
+    if (ventaFormRef.current) {
+      ventaFormRef.current.focus();
+    }
+    if (denominacionFormRef.current) {
+      denominacionFormRef.current.focus();
+    }
+  }, []);
+  const contentRef = useRef();
+  const handlePrint = useReactToPrint({
+    contentRef,
+  });
 
   return (
     <Box style={{ minWidth: "100%" }}>
@@ -438,10 +410,10 @@ function DashboardVentaComponent({
           marginBottom: "1rem",
         }}
       >
-        Registrar Venta
+        {movimientoInventario ? " Movimiento de inventario" : "Registrar Venta"}
       </Typography>
       <Grid container spacing={1}>
-        <Grid item xs={11} md={12}>
+        <Grid item xs={11} md={12} ref={ventaFormRef}>
           <VentaForm
             ventaData={ventaData}
             clientes={clients}
@@ -453,8 +425,6 @@ function DashboardVentaComponent({
             setProducto={(id) =>
               setVentaData((prev) => ({ ...prev, productoId: id }))
             }
-            denominaciones={denominaciones}
-            setDenominaciones={setDenominaciones}
             addProducto={addProducto}
             handleOpenClientModal={handleOpenClientModal}
             setProductosSeleccionados={setProductosSeleccionados}
@@ -474,52 +444,30 @@ function DashboardVentaComponent({
             setProductosDetallados={setProductosDetallados}
             metodoPago={metodoPago}
             setMetodoPago={setMetodoPago}
+            movimientoInventario={movimientoInventario}
+            totalPrice={totalPrice}
           />
         </Grid>
-        {/* <Grid item xs={11} md={11}>
-          <TableVentaComponent
-            productosSeleccionados={productosSeleccionados}
-            removeProducto={removeProducto}
-            setTotalPrice={setTotalPrice}
-          />
-        </Grid> */}
-        {/* {Array.isArray(caja?.denominaciones) && (
-          <DenominacionForm
-            caja={caja}
-            refetchCaja={refetchCaja}
-            denominaciones={denominaciones}
-            setDenominaciones={setDenominaciones}
-            totalPrice={totalPrice}
-            setRestoreDenom={setRestoreDenom}
-          />
-        )} */}
       </Grid>
       <Box
-        style={{
-          margin: "2rem 0 2rem 0",
+        sx={{
+          margin: ".5rem 0 2rem 0",
+          width: "100%",
           display: "flex",
-          justifyContent: 'space-around',
-          alignItems: 'center',
+          justifyContent: "space-around",
+          alignItems: "start",
         }}
       >
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSubmit}
-          disabled={ventaMutation.isLoading}
-        >
-          {ventaMutation.isLoading ? "Registrando..." : "Registrar Venta"}
+        <CalculatorComponent totalPrice={totalPrice} />
+        <Button variant="contained" color="primary" onClick={handleSubmit}>
+          {movimientoInventario ? "Registrar Movimiento" : "Registrar Venta"}
         </Button>
-        <CalcChangeComponent totalVenta={totalPrice} />
-
       </Box>
-
       <ClientModal
         refetchClients={refetchClients}
         open={openClientModal}
         handleClose={handleCloseClientModal}
       />
-
       <Snackbar
         open={snackbar.open}
         autoHideDuration={5000}
@@ -529,10 +477,24 @@ function DashboardVentaComponent({
         <Alert
           onClose={() => setSnackbar({ ...snackbar, open: false })}
           severity={snackbar.severity}
+          sx={{
+            fontSize: "1.8rem", // Tamaño del texto del mensaje
+            padding: "16px 24px", // Padding interno del Alert
+            alignItems: "center", // Centrar contenido verticalmente
+          }}
         >
           {snackbar.message}
         </Alert>
       </Snackbar>
+      <div>
+        <div style={{ display: "none" }}>
+          <TicketComponent
+            ref={contentRef}
+            productos={productosDetallados}
+            totalPrice={totalPrice}
+          />
+        </div>
+      </div>
     </Box>
   );
 }

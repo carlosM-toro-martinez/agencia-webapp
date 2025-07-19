@@ -50,6 +50,7 @@ function ReportCajaComponent() {
       fetchReport();
     }
   };
+  console.log(cajas);
 
   return (
     <DrawerComponent>
@@ -75,7 +76,7 @@ function ReportCajaComponent() {
               marginTop: "3rem",
             }}
           >
-            <FormControl style={{ width: "15rem" }}>
+            <FormControl style={{ width: "20rem" }}>
               <InputLabel id="select-inicio-label">Fecha de Inicio</InputLabel>
               <Select
                 label="Fecha de Inicio"
@@ -85,7 +86,16 @@ function ReportCajaComponent() {
               >
                 {cajas?.map((caja) => (
                   <MenuItem key={caja.id_caja} value={caja.id_caja}>
-                    {new Date(caja.fecha_apertura).toLocaleDateString()}
+                    {new Date(caja.fecha_apertura).toLocaleDateString()}{" "}
+                    {caja.trabajadorCierre.nombre},{" "}
+                    {caja.movimientos[0]?.trabajadorMovimiento.nombre}{" "}
+                    <span
+                      style={{
+                        color: caja.movimientos.length === 0 ? "green" : "red",
+                      }}
+                    >
+                      {caja.movimientos.length === 0 ? "abierta" : "cerrada"}
+                    </span>
                   </MenuItem>
                 ))}
               </Select>
@@ -100,7 +110,7 @@ function ReportCajaComponent() {
               Generar Reporte
             </Button>
 
-            <FormControl style={{ width: "15rem" }}>
+            <FormControl style={{ width: "20rem" }}>
               <InputLabel id="select-final-label">Fecha Final</InputLabel>
               <Select
                 label="Fecha Final"
@@ -110,7 +120,16 @@ function ReportCajaComponent() {
               >
                 {cajas?.map((caja) => (
                   <MenuItem key={caja.id_caja} value={caja.id_caja}>
-                    {new Date(caja.fecha_apertura).toLocaleDateString()}
+                    {new Date(caja.fecha_apertura).toLocaleDateString()}{" "}
+                    {caja.trabajadorCierre.nombre},{" "}
+                    {caja.movimientos[0]?.trabajadorMovimiento.nombre}{" "}
+                    <span
+                      style={{
+                        color: caja.movimientos.length === 0 ? "green" : "red",
+                      }}
+                    >
+                      {caja.movimientos.length === 0 ? "abierta" : "cerrada"}
+                    </span>
                   </MenuItem>
                 ))}
               </Select>

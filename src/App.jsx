@@ -23,7 +23,9 @@ import MovimientoInventario from "./pages/MovimientoInventario";
 import CreateMovementInventario from "./pages/MovimientoInventario/CreateMovementInventario";
 import { Box } from "@mui/material";
 import Theme from "./theme/Theme";
-import VentasPorPagar from "./pages/VentasPorPagar";
+import ReportProveedoresComponent from "./components/DashboardReporteComponent/ReportProveedoresComponent";
+import ReportProductosComponent from "./components/DashboardReporteComponent/ReportProductosComponent";
+import EditProductProviders from "./pages/Almacenes/EditProductProviders";
 
 function App() {
   const queryClient = new QueryClient();
@@ -46,6 +48,14 @@ function App() {
                   <Route path="caja" element={<ReportCajaComponent />} />
                   <Route path="venta" element={<ReportVentasComponent />} />
                   <Route path="cliente" element={<ReportClientesComponent />} />
+                  <Route
+                    path="proveedor"
+                    element={<ReportProveedoresComponent />}
+                  />
+                  <Route
+                    path="producto"
+                    element={<ReportProductosComponent />}
+                  />
                 </Route>
               </Route>
 
@@ -56,14 +66,26 @@ function App() {
               >
                 <Route path="/almacenes/crear" element={<CreateAlmacenes />} />
               </Route>
-
+              {/* <Route
+                element={
+                  <ProtectedRoute allowedPermissions={["gestion de compras"]} />
+                }
+              >
+                <Route
+                  path="/almacenes/proveedor"
+                  element={<EditProductProviders />}
+                />
+              </Route> */}
               <Route
                 element={<ProtectedRoute allowedPermissions={["inventario"]} />}
               >
                 <Route path="/almacenes" element={<Almacenes />} />
                 <Route path="/movimiento-inventario">
                   <Route path="" element={<MovimientoInventario />} />
-                  <Route path="crear" element={<CreateMovementInventario />} />
+                  <Route
+                    path="crear"
+                    element={<CreateVenta movimientoInventario={true} />}
+                  />
                 </Route>
               </Route>
 
@@ -103,10 +125,6 @@ function App() {
                 <Route path="" element={<Ventas />} />
                 <Route path="crear" element={<CreateVenta />} />
               </Route>
-              <Route
-                path="/ventas_por_pagar"
-                element={<VentasPorPagar />}
-              />
               <Route path="/" element={<Inicio />} />
               <Route path="/login" element={<LoginComponent />} />
               <Route

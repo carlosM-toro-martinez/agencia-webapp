@@ -34,21 +34,20 @@ const TableMetodoVentaComponent = ({
     }
   }, [selectedProduct, onProductSelect]);
 
-  // Configurar el uso de useMutation
   const mutation = useMutation((id) => metodoVentaServices(id), {
     onSuccess: () => {
       setMessage("Método eliminado");
-      refetch(); // Refresca los datos después de eliminar
-      setTimeout(() => setMessage(""), 3000); // Limpia el mensaje después de 3 segundos
+      refetch();
+      setTimeout(() => setMessage(""), 1500);
     },
     onError: () => {
       setMessage("Error al eliminar el método");
-      setTimeout(() => setMessage(""), 3000); // Limpia el mensaje después de 3 segundos
+      setTimeout(() => setMessage(""), 1500);
     },
   });
 
   const handleDelete = (id) => {
-    mutation.mutate(id); // Ejecutar la función de eliminación
+    mutation.mutate(id);
   };
 
   return (
@@ -78,25 +77,25 @@ const TableMetodoVentaComponent = ({
             <TableRow>
               <TableCell
                 className={classes.tableCell}
-                sx={{ color: "#fff", fontWeight: "bold" }}
+                sx={{ fontWeight: "bold" }}
               >
                 Descripción
               </TableCell>
               <TableCell
                 className={classes.tableCell}
-                sx={{ color: "#fff", fontWeight: "bold" }}
+                sx={{ fontWeight: "bold" }}
               >
                 Cantidad por Método
               </TableCell>
               <TableCell
                 className={classes.tableCell}
-                sx={{ color: "#fff", fontWeight: "bold" }}
+                sx={{ fontWeight: "bold" }}
               >
                 Precio
               </TableCell>
               <TableCell
                 className={classes.tableCell}
-                sx={{ color: "#fff", fontWeight: "bold" }}
+                sx={{ fontWeight: "bold" }}
               >
                 Acciones
               </TableCell>
@@ -106,7 +105,12 @@ const TableMetodoVentaComponent = ({
             {data.map((row) => (
               <TableRow key={row.id_metodo_venta}>
                 <TableCell>{row.descripcion}</TableCell>
-                <TableCell>{row.cantidad_por_metodo}</TableCell>
+                <TableCell
+                  sx={{ color: row.cantidad_por_metodo ? "green" : "red" }}
+                >
+                  {row.cantidad_por_metodo}
+                </TableCell>
+
                 <TableCell>
                   {row.precio !== null ? row.precio : "N/A"}
                 </TableCell>

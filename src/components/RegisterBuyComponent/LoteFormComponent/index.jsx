@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from "react";
 import {
+  Grid,
+  InputAdornment,
   TextField,
   Box,
   Button,
-  Checkbox,
-  FormControlLabel,
-} from "@material-ui/core";
-import { InputAdornment, Typography } from "@mui/material";
+  Snackbar,
+  Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from "@mui/material";
 
 const LoteFormComponent = ({
   lote,
@@ -20,11 +25,12 @@ const LoteFormComponent = ({
   loteData,
   setError,
   isLoteProveedorLocked,
-  peso,
-  setPeso,
   subCantidad,
   setSubCantidad,
+  precioVenta,
+  setPrecioVenta,
 }) => {
+  const [selectedPercent, setSelectedPercent] = useState(30);
   const [errors, setErrors] = useState({
     lote: false,
     fechaCaducidad: false,
@@ -32,9 +38,16 @@ const LoteFormComponent = ({
     caducidadPasada: false,
   });
 
-  const [productoConPeso, setProductoConPeso] = useState(false);
-  const [compraPorMayor, setCompraPorMayor] = useState(false);
-  const [compraPorUnidad, setCompraPorUnidad] = useState(false);
+  useEffect(() => {
+    let nuevoPrecio;
+    if (subCantidad) {
+      nuevoPrecio = (precio / subCantidad) * (1 + selectedPercent / 100);
+    } else {
+      nuevoPrecio = precio * (1 + selectedPercent / 100);
+    }
+
+    setPrecioVenta(Number(nuevoPrecio.toFixed(2)));
+  }, [precio, selectedPercent, subCantidad]);
 
   useEffect(() => {
     validateForm();
@@ -50,13 +63,13 @@ const LoteFormComponent = ({
 
     let hasErrors = false;
 
-    if (
-      loteData?.some((item) => item.numero_lote === lote) &&
-      !isLoteProveedorLocked
-    ) {
-      newErrors.loteExists = true;
-      hasErrors = true;
-    }
+    // if (
+    //   loteData?.some((item) => item.numero_lote === lote) &&
+    //   !isLoteProveedorLocked
+    // ) {
+    //   newErrors.loteExists = true;
+    //   hasErrors = true;
+    // }
 
     if (!lote && !isLoteProveedorLocked) {
       newErrors.lote = true;
@@ -77,281 +90,126 @@ const LoteFormComponent = ({
 
     setErrors(newErrors);
     setError(hasErrors);
+    console.log(errors.loteExists);
   };
 
-  const generateRandomLote = () => {
-    let randomLote;
-    const maxAttempts = 100;
-    let attempt = 0;
-    do {
-      randomLote = Math.floor(100000 + Math.random() * 900000).toString();
-      attempt++;
-    } while (
-      loteData?.some((item) => item.numero_lote === randomLote) &&
-      attempt < maxAttempts
-    );
-
-    if (attempt < maxAttempts) {
-      setLote(randomLote);
-    } else {
-      alert("No se pudo generar un número de lote único, intenta de nuevo.");
-    }
-  };
+  const porcentajes = Array.from(
+    { length: (40 - 15) / 5 + 1 },
+    (_, i) => 15 + i * 5
+  );
 
   return (
-    <Box style={{ display: "flex", flexDirection: "column" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexWrap: "wrap",
+        justifyContent: "center",
+        gap: 2,
+        p: 2,
+      }}
+    >
       <Box
-        style={{
-          display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "space-between",
-          margin: "1rem 0 1rem 0",
+        sx={{
+          flexBasis: { xs: "100%", sm: "50%", md: "33.33%", lg: "15%" },
+          minWidth: 250,
         }}
       >
         <TextField
-          label="Número de Lote"
-          fullWidth
-          value={lote}
-          onChange={(e) => {
-            if (!isLoteProveedorLocked) {
-              setLote(e.target.value);
-            }
-          }}
-          margin="normal"
-          error={errors.lote || errors.loteExists}
-          helperText={
-            errors.loteExists
-              ? "Error: Ese número de lote ya existe"
-              : errors.lote
-              ? "Este campo es requerido"
-              : ""
-          }
-          disabled={isLoteProveedorLocked}
-          style={{
-            width: "10rem",
-          }}
-        />
-        <Button
-          variant="contained"
-          onClick={generateRandomLote}
-          disabled={isLoteProveedorLocked}
-          style={{
-            backgroundColor: "#000",
-            color: "#fff",
-            fontWeight: "bold",
-          }}
-        >
-          Generar
-        </Button>
-      </Box>
-
-      <Box style={{ display: "flex", gap: 30, width: "16rem" }}>
-        <TextField
-          label="Fecha de Caducidad"
-          fullWidth
-          type="date"
-          value={fechaCaducidad}
-          onChange={(e) => setFechaCaducidad(e.target.value)}
-          margin="normal"
-          InputLabelProps={{ shrink: true }}
-          error={errors.fechaCaducidad || errors.caducidadPasada}
-          helperText={
-            errors.fechaCaducidad
-              ? "Este campo es requerido"
-              : errors.caducidadPasada
-              ? "La fecha de caducidad no puede ser anterior a la fecha actual"
-              : ""
-          }
-        />
-      </Box>
-
-      <Box style={{ display: "flex", gap: 20, margin: "1rem 0" }}>
-        <FormControlLabel
-          control={
-            <Box
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-              }}
-            >
-              <Checkbox
-                checked={productoConPeso}
-                onChange={(e) => {
-                  setProductoConPeso(e.target.checked);
-                  if (e.target.checked) {
-                    setCompraPorMayor(false);
-                    setCompraPorUnidad(false);
-                    setPeso(null);
-                    setSubCantidad(null);
-                    setPrecio(null);
-                    setCantidad(null);
-                  }
-                }}
-                color="primary"
-              />
-              <Typography
-                variant="body2"
-                style={{ marginTop: "4px", textAlign: "center" }}
-              >
-                Producto con peso
-              </Typography>
-            </Box>
-          }
-          label=""
-        />
-        <FormControlLabel
-          control={
-            <Box
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-              }}
-            >
-              <Checkbox
-                checked={compraPorMayor}
-                onChange={(e) => {
-                  setCompraPorMayor(e.target.checked);
-                  if (e.target.checked) {
-                    setProductoConPeso(false);
-                    setCompraPorUnidad(false);
-                    setPeso(null);
-                    setSubCantidad(null);
-                    setPrecio(null);
-                    setCantidad(null);
-                  }
-                }}
-                color="primary"
-              />
-              <Typography
-                variant="body2"
-                style={{ marginTop: "4px", textAlign: "center" }}
-              >
-                Compra por paquetes
-              </Typography>
-            </Box>
-          }
-          label=""
-        />
-
-        <FormControlLabel
-          control={
-            <Box
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-              }}
-            >
-              <Checkbox
-                checked={compraPorUnidad}
-                onChange={(e) => {
-                  setCompraPorUnidad(e.target.checked);
-                  if (e.target.checked) {
-                    setProductoConPeso(false);
-                    setCompraPorMayor(false);
-                    setPeso(null);
-                    setSubCantidad(null);
-                    setPrecio(null);
-                    setCantidad(null);
-                  }
-                }}
-                color="primary"
-              />
-              <Typography
-                variant="body2"
-                style={{ marginTop: "4px", textAlign: "center" }}
-              >
-                Compra por unidad
-              </Typography>
-            </Box>
-          }
-          label=""
-        />
-      </Box>
-      {(compraPorMayor || compraPorUnidad) && (
-        <TextField
-          label={compraPorMayor ? "Paquetes o cajas" : "Cantidad"}
-          fullWidth
+          variant="outlined"
+          size="small"
+          label="Paquetes o cajas"
           type="number"
           value={cantidad || ""}
           onChange={(e) => setCantidad(e.target.value)}
-          margin="normal"
-          error={errors.cantidad}
+          //helperText="Ej. 3 paq de cocacola"
           required
-          helperText={
-            compraPorMayor ? "Ej. 3 paq de cocacola" : "Ej. 12 u leche gloria"
-          }
-          style={{ width: "70%" }}
+          fullWidth
         />
-      )}
+      </Box>
 
-      {compraPorMayor && (
-        <Box style={{ display: "flex", gap: 30 }}>
-          <TextField
-            id="standard-basic"
-            label="Cantidad por caja o paquete"
-            type="number"
-            value={subCantidad || ""}
-            onChange={(e) => setSubCantidad(e.target.value)}
-            fullWidth
-            margin="normal"
-            variant="standard"
-            required
-            helperText="Ej. 6 cocacolas por paq."
-            style={{ width: "80%" }}
-          />
-        </Box>
-      )}
-
-      {productoConPeso && (
-        <Box style={{ display: "flex", gap: 30 }}>
-          <TextField
-            id="standard-basic"
-            label="Peso Total (Kg)"
-            type="number"
-            value={peso || ""}
-            onChange={(e) => setPeso(e.target.value)}
-            fullWidth
-            margin="normal"
-            variant="standard"
-            helperText="Peso Total (Kg)"
-            required
-            InputProps={{
-              endAdornment: <InputAdornment position="end">Kg</InputAdornment>,
-            }}
-            style={{ width: "60%" }}
-          />
-        </Box>
-      )}
-      {(productoConPeso || compraPorMayor || compraPorUnidad) && (
+      <Box
+        sx={{
+          flexBasis: { xs: "100%", sm: "50%", md: "33.33%", lg: "15%" },
+          minWidth: 250,
+        }}
+      >
         <TextField
-          label={
-            productoConPeso
-              ? "Precio total"
-              : compraPorMayor
-              ? "Precio por caja"
-              : "Precio por unidad"
-          }
+          variant="outlined"
+          size="small"
+          label="Cantidad por paquete"
+          type="number"
+          value={subCantidad || ""}
+          onChange={(e) => setSubCantidad(e.target.value)}
+          //helperText="Ej. 6 cocacolas por paq."
+          //required
+          fullWidth
+        />
+      </Box>
+
+      <Box
+        sx={{
+          flexBasis: { xs: "100%", sm: "50%", md: "33.33%", lg: "15%" },
+          minWidth: 250,
+        }}
+      >
+        <TextField
+          variant="outlined"
+          size="small"
+          label="Precio por caja"
           type="number"
           value={precio || ""}
           onChange={(e) => setPrecio(e.target.value)}
-          margin="normal"
-          error={errors.precio}
-          helperText={
-            productoConPeso
-              ? "Precio total"
-              : compraPorMayor
-              ? "Ej. 60Bs por paq."
-              : "Ej. 8.5BS porunidad"
-          }
+          //helperText="Ej. 60 Bs por paq."
           InputProps={{
             endAdornment: <InputAdornment position="end">Bs</InputAdornment>,
           }}
-          style={{ width: "70%" }}
+          fullWidth
         />
-      )}
+      </Box>
+
+      {/* <Box
+        sx={{
+          flexBasis: { xs: "100%", sm: "50%", md: "33.33%", lg: "15%" },
+          minWidth: 250,
+          display: "flex",
+        }}
+      >
+        <TextField
+          variant="outlined"
+          size="small"
+          label="Precio de venta"
+          type="number"
+          value={precioVenta || ""}
+          onChange={(e) => setPrecioVenta(e.target.value)}
+          InputProps={{
+            endAdornment: <InputAdornment position="end">Bs</InputAdornment>,
+          }}
+          fullWidth
+        />
+        <FormControl size="small" sx={{ flexShrink: 0 }}>
+          <InputLabel id="label-proveedor">%</InputLabel>
+          <Select
+            labelId="label-proveedor"
+            label="%"
+            //value={proveedor}
+            value={selectedPercent}
+            onChange={(e) => setSelectedPercent(e.target.value)}
+          >
+            {porcentajes.map((p) => (
+              <MenuItem key={p} value={p}>
+                {p}%
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box> */}
+      {/* <Snackbar
+        open={errors.loteExists}
+        autoHideDuration={10000}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity={"error"}>Error el numero de lote ya existe</Alert>
+      </Snackbar> */}
     </Box>
   );
 };

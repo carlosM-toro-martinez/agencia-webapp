@@ -8,6 +8,7 @@ import productosService from "../../async/services/get/productosService";
 import TableCategoriasComponent from "../../components/TableCategoriasComponent";
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
+import proveedoresService from "../../async/services/get/proveedoresService";
 
 function Almacenes() {
   const navigate = useNavigate();
@@ -23,8 +24,19 @@ function Almacenes() {
     refetch: refetchCategoria,
   } = useQuery("categorias", categoriasService);
 
+  const {
+    data: proveedoresData,
+    isLoading: isLoadingProveedores,
+    error: errorProveedores,
+    refetch: refetchProveedores,
+  } = useQuery(`proveedores`, proveedoresService);
+
   const handleButtonClick = () => {
     navigate("/almacenes/crear");
+  };
+
+  const handleProveedorEdit = () => {
+    navigate("/almacenes/proveedor");
   };
 
   return (
@@ -42,27 +54,11 @@ function Almacenes() {
             textAlign: "center",
             fontSize: "2rem",
             fontWeight: "bold",
-            margin: "1rem 0 1.5rem 0",
+            margin: "1rem 0 .5rem 0",
           }}
         >
           Inventario
         </Typography>
-        {/* {!isLoading ? (
-          <TableProductsComponent productos={data} refetchProducts={refetch} />
-        ) : null} */}
-        {!isLoading ? (
-          Array.isArray(data) && data.length > 0 ? (
-            <TableProductsComponent
-              productos={data}
-              refetchProducts={refetch}
-            />
-          ) : (
-            <Typography variant="body1">
-              Aún no existen productos registrados.
-            </Typography>
-          )
-        ) : null}
-
         <Box style={{ display: "flex", justifyContent: "center" }}>
           <Button
             variant="contained"
@@ -72,6 +68,19 @@ function Almacenes() {
             Crear Nueva Compra
           </Button>
         </Box>
+        {!isLoading ? (
+          Array.isArray(data) && data.length > 0 ? (
+            <TableProductsComponent
+              productos={data}
+              refetchProducts={refetch}
+              proveedoresData={proveedoresData}
+            />
+          ) : (
+            <Typography variant="body1">
+              Aún no existen productos registrados.
+            </Typography>
+          )
+        ) : null}
 
         <Typography
           component={"h2"}
@@ -95,6 +104,16 @@ function Almacenes() {
             <Typography variant="body1">Aún no existen categorías.</Typography>
           )
         ) : null}
+
+        {/* <Box style={{ display: "flex", justifyContent: "center" }}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleProveedorEdit}
+          >
+            Editar proveedores
+          </Button>
+        </Box> */}
       </Box>
     </DrawerComponent>
   );

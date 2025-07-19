@@ -20,7 +20,7 @@ import useStyles from "./login.styles";
 import loginAddServices from "../../async/services/post/loginAddServices";
 import { MainContext } from "../../context/MainContext";
 import { useNavigate } from "react-router-dom";
-import conver from "../../assets/images/icons/conver.png";
+import logo from "../../assets/images/icons/logoWhite.png";
 import FooterComponent from "../DrawerComponent/FooterComponent";
 
 function LoginAdministradorComponent() {
@@ -94,7 +94,7 @@ function LoginAdministradorComponent() {
       </Typography> */}
       <Paper className={classes.paper} elevation={10}>
         <Box className={classes.titleContainer}>
-          <img src={conver} alt="" style={{ width: "15rem" }} />
+          <img src={logo} alt="" style={{ width: "15rem" }} />
           <Typography
             component={"h2"}
             style={{
@@ -157,7 +157,6 @@ function LoginAdministradorComponent() {
             type="submit"
             disabled={mutation.isLoading}
             style={{ width: "10rem", marginTop: "1rem" }}
-            sx={{ backgroundColor: "#3d97ef" }}
           >
             {mutation.isLoading ? "Iniciando..." : "Iniciar Sesión"}
           </Button>

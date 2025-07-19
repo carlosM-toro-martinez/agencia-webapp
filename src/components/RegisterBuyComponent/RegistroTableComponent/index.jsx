@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Table,
   TableBody,
@@ -15,38 +15,24 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import PDFReport from "./PDFReport";
 import { MainContext } from "../../../context/MainContext";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import detalleCompraDeleteServices from "../../../async/services/delete/detalleCompraDeleteServices";
+import { useMutation } from "react-query";
 
 const RegistroTableComponent = ({
   registroCombinado,
+  setRegistroCombinado,
   handleFinalize,
   numeroLote,
 }) => {
   const { user } = useContext(MainContext);
 
   const buyLote = registroCombinado;
-  buyLote.sort((a, b) => a.id_lote - b.id_lote);
 
-  const prevRegistroCombinadoLength = useRef(buyLote.length);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (buyLote.length > prevRegistroCombinadoLength.current) {
-      const data = buyLote[buyLote.length - 1];
-
-      const nuevoData = {
-        ...data,
-        tipo_movimiento: "compra",
-        id_trabajador: user?.id_trabajador,
-      };
-
-      productoUpdateServices(nuevoData?.producto?.id_producto, nuevoData);
-
-      prevRegistroCombinadoLength.current = buyLote.length;
-    }
-  }, [registroCombinado]);
+  const [infoArray, setInfoArray] = useState([]);
 
   const calcularPrecioTotal = (registro, precioPeso) => {
-    const precioUnitario = parseFloat(registro?.detalleCompra?.precio_unitario);
+    const precioUnitario = parseFloat(registro?.precio_unitario);
 
     if (isNaN(precioUnitario)) {
       return 0;
@@ -56,12 +42,15 @@ const RegistroTableComponent = ({
       return precioUnitario;
     } else {
       const cantidad = registro.cantidad;
-      return typeof cantidad === "number" ? cantidad * precioUnitario : 0;
+
+      return typeof parseInt(cantidad) === "number"
+        ? cantidad * precioUnitario
+        : 0;
     }
   };
 
   const calcularSumaTotal = () => {
-    const total = buyLote.reduce(
+    const total = registroCombinado.reduce(
       (acumulado, registro) =>
         acumulado +
         (registro.cantidad > 0
@@ -75,71 +64,91 @@ const RegistroTableComponent = ({
 
   const handleRoute = () => {
     handleFinalize();
+  };
+
+  const handleCancelar = () => {
     navigate("/almacenes");
   };
 
+  const handleDelete = (index) => {
+    const updatedBuyLote = [...registroCombinado];
+    updatedBuyLote.splice(index, 1);
+    setRegistroCombinado(updatedBuyLote);
+  };
+
   return (
-    <Box sx={{ width: "93%" }}>
-      {numeroLote && (
+    <Box sx={{ width: "100%" }}>
+      {/* {numeroLote && (
         <Box sx={{ display: "flex", justifyContent: "space-around" }}>
-          <Typography variant="h6" component="div" gutterBottom>
+          <Typography
+            variant="h6"
+            component="div"
+            gutterBottom
+            style={{ textTransform: "capitalize", fontWeight: "bold" }}
+          >
             Número de Lote: {numeroLote}
           </Typography>
-          <Typography variant="h6" component="div" gutterBottom>
-            Proveedor: {buyLote[0]?.detalleCompra?.proveedor?.nombre}
+          <Typography
+            variant="h6"
+            component="div"
+            gutterBottom
+            style={{ textTransform: "capitalize", fontWeight: "bold" }}
+          >
+            Proveedor: {registroCombinado[0]?.proveedor}
           </Typography>
         </Box>
-      )}
+      )} */}
 
       <TableContainer component={Paper}>
-        <Table style={{
-          maxHeight: "40vh", 
-          overflowY: "auto",
-          display: 'block',
-          width: '100%',
-        }}>
-          <TableHead style={{ backgroundColor: "#3d97ef", width: '100%' }}>
+        <Table
+          style={{
+            width: "100%",
+          }}
+        >
+          <TableHead style={{ backgroundColor: "#f5f5f5", width: "100%" }}>
             <TableRow>
-              <TableCell style={{ color: "#fff" }}>Producto</TableCell>
-              <TableCell style={{ color: "#fff" }}>Fecha Caducidad</TableCell>
-              <TableCell style={{ color: "#fff" }}>Peso</TableCell>
-              <TableCell style={{ color: "#fff" }}>Cantidad</TableCell>
-              <TableCell style={{ color: "#fff" }}>Precio Unitario</TableCell>
-              <TableCell style={{ color: "#fff" }}>Precio Total</TableCell>
-              <TableCell style={{ color: "#fff" }}>Acciones</TableCell>
+              <TableCell style={{ fontWeight: "bold" }}>Producto</TableCell>
+              <TableCell style={{ fontWeight: "bold" }}>Lote</TableCell>
+              <TableCell style={{ fontWeight: "bold" }}>
+                Fecha Caducidad
+              </TableCell>
+              <TableCell style={{ fontWeight: "bold" }}>Cantidad</TableCell>
+              <TableCell style={{ fontWeight: "bold" }}>
+                Precio Unitario (compra)
+              </TableCell>
+              <TableCell style={{ fontWeight: "bold" }}>Precio Venta</TableCell>
+              <TableCell style={{ fontWeight: "bold" }}>Precio Total</TableCell>
+              <TableCell style={{ fontWeight: "bold" }}>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {buyLote.map((registro, index) => (
+            {registroCombinado.map((registro, index) => (
               <TableRow key={index}>
-                <TableCell style={{textTransform: 'capitalize'}} >{registro?.producto?.nombre}</TableCell>
-                <TableCell>
-                  {new Date(registro?.fecha_caducidad).toLocaleDateString()}
+                <TableCell style={{ textTransform: "capitalize" }}>
+                  {registro?.producto}
+                </TableCell>
+                <TableCell style={{ textTransform: "capitalize" }}>
+                  {registro?.numero_lote}
                 </TableCell>
                 <TableCell>
-                  {registro?.peso}
-                  {"Kg"}
+                  {new Date(registro?.fecha_caducidad).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
                   {`${registro?.cantidad} - ${registro?.subCantidad}`}
                   {"u"}
                 </TableCell>
-                {/* <TableCell>
-                  {registro?.detalleCompra?.proveedor?.nombre}
-                </TableCell> */}
+                <TableCell>{registro?.precio_unitario} Bs</TableCell>
+                <TableCell>{registro?.precioVenta} Bs</TableCell>
                 <TableCell>
-                  {registro?.detalleCompra?.precio_unitario} Bs
-                </TableCell>
-                <TableCell>
-                  {registro.cantidad > 0
+                  {registro?.cantidad > 0
                     ? calcularPrecioTotal(registro).toFixed(2)
                     : calcularPrecioTotal(registro, true).toFixed(2)}{" "}
                   Bs
                 </TableCell>
                 <TableCell>
-                    <Button onClick={() => handleDelete(index)}>
-                      <DeleteOutlineOutlinedIcon />
-                    </Button>
+                  <Button onClick={() => handleDelete(index, registro)}>
+                    <DeleteOutlineOutlinedIcon />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -149,11 +158,11 @@ const RegistroTableComponent = ({
           <TableCell
             colSpan={5}
             align="right"
-            style={{ fontWeight: "bold", fontSize: '2rem' }}
+            style={{ fontWeight: "bold", fontSize: "2rem" }}
           >
             Suma Total:
           </TableCell>
-          <TableCell style={{ fontWeight: "bold", fontSize: '2rem' }}>
+          <TableCell style={{ fontWeight: "bold", fontSize: "2rem" }}>
             {calcularSumaTotal().toFixed(2)} Bs
           </TableCell>
         </TableRow>
@@ -161,28 +170,14 @@ const RegistroTableComponent = ({
       <Box style={{ display: "flex", justifyContent: "center", gap: 10 }}>
         <Button
           variant="contained"
-          color="primary"
-          onClick={handleRoute}
-          style={{ marginTop: "20px" }}
+          onClick={registroCombinado.length > 0 ? handleRoute : handleCancelar}
+          style={{
+            marginTop: "20px",
+            backgroundColor: registroCombinado.length > 0 ? "green" : "red",
+          }}
         >
-          {buyLote.length > 0 ? "Finalizar" : "Cancelar"}
+          {registroCombinado.length > 0 ? "Finalizar" : "Cancelar"}
         </Button>
-        {buyLote.length > 0 ? (
-          <PDFDownloadLink
-            document={
-              <PDFReport buyLote={buyLote} sumaTotal={calcularSumaTotal()} />
-            }
-            fileName="reporte_compra.pdf"
-          >
-            <Button
-              variant="contained"
-              color="primary"
-              style={{ marginTop: "20px" }}
-            >
-              Generar Reporte
-            </Button>
-          </PDFDownloadLink>
-        ) : null}
       </Box>
     </Box>
   );

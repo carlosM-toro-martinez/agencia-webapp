@@ -1,11 +1,24 @@
 import React, { useState } from "react";
-import { Autocomplete, TextField, FormControl, Box, Table, TableBody, TableCell, TableHead, TableRow, Button,  Dialog, DialogContent  } from "@mui/material";
+import {
+  Autocomplete,
+  TextField,
+  FormControl,
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Button,
+  Dialog,
+  DialogContent,
+} from "@mui/material";
 import { useQuery, useMutation } from "react-query";
 import clientesService from "../../../../async/services/get/clientesService";
 import reportClientsSalesServices from "../../../../async/services/get/reportClientsSalesServices";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import background from "../../../../assets/images/background.png";
+import background from "../../../../assets/images/logos/3.png";
 
 const ClienteAutocompleteComponent = ({ clientes, onClienteSeleccionado }) => {
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
@@ -18,7 +31,10 @@ const ClienteAutocompleteComponent = ({ clientes, onClienteSeleccionado }) => {
   };
 
   return (
-    <FormControl fullWidth style={{ display: "flex", flexDirection: "row", width: '20rem' }}>
+    <FormControl
+      fullWidth
+      style={{ display: "flex", flexDirection: "row", width: "20rem" }}
+    >
       <Autocomplete
         options={clientes || []}
         getOptionLabel={(cliente) =>
@@ -88,22 +104,15 @@ function TableClientsSalesTotal() {
 
     const tableData = [
       [
-        mutation.data.totalGastado.cliente.nombre,
-        mutation.data.totalGastado.cliente.apellido,
-        mutation.data.totalGastado.cliente.codigo,
-        mutation.data.totalGastado.totalGastado
-      ]
+        mutation?.data?.totalGastado?.cliente?.nombre,
+        mutation?.data?.totalGastado?.cliente?.apellido,
+        mutation?.data?.totalGastado?.cliente?.codigo,
+        mutation?.data?.totalGastado?.totalGastado,
+      ],
     ];
 
     doc.autoTable({
-      head: [
-        [
-          "Cliente",
-          "Apellido",
-          "Código",
-          "Total Gastado"
-        ]
-      ],
+      head: [["Cliente", "Apellido", "Código", "Total Gastado"]],
       body: tableData,
       startY: 20,
       theme: "grid",
@@ -112,7 +121,7 @@ function TableClientsSalesTotal() {
     const img = new Image();
     img.src = background;
     img.onload = () => {
-      doc.addImage(img, "PNG", 60, doc.previousAutoTable.finalY + 20, 80, 40);
+      doc.addImage(img, "PNG", 80, doc.previousAutoTable.finalY + 20, 40, 40);
       const pdfOutput = doc.output("blob");
       setPdfBlob(pdfOutput);
       setOpenDialog(true);
@@ -120,7 +129,14 @@ function TableClientsSalesTotal() {
   };
 
   return (
-    <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 2}}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        padding: 2,
+      }}
+    >
       <ClienteAutocompleteComponent
         clientes={clientsData}
         onClienteSeleccionado={handleClienteSeleccionado}
@@ -130,34 +146,50 @@ function TableClientsSalesTotal() {
       {mutation.isSuccess && (
         <Box sx={{ marginTop: 4, width: "80%" }}>
           <Table>
-            <TableHead style={{ backgroundColor: "#3d97ef" }}>
+            <TableHead style={{ backgroundColor: "#f5f5f5" }}>
               <TableRow>
-                <TableCell align="center" style={{ color: "#fff", fontWeight: "bold" }}>Cliente</TableCell>
-                <TableCell align="center" style={{ color: "#fff", fontWeight: "bold" }}>Apellido</TableCell>
-                <TableCell align="center" style={{ color: "#fff", fontWeight: "bold" }}>Código</TableCell>
-                <TableCell align="center" style={{ color: "#fff", fontWeight: "bold" }}>Total Gastado</TableCell>
+                <TableCell align="center" style={{ fontWeight: "bold" }}>
+                  Cliente
+                </TableCell>
+                <TableCell align="center" style={{ fontWeight: "bold" }}>
+                  Apellido
+                </TableCell>
+                <TableCell align="center" style={{ fontWeight: "bold" }}>
+                  Código
+                </TableCell>
+                <TableCell align="center" style={{ fontWeight: "bold" }}>
+                  Total Gastado
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               <TableRow>
                 <TableCell align="center">
-                  {mutation.data.totalGastado.cliente.nombre}
+                  {mutation?.data?.totalGastado?.cliente?.nombre}
                 </TableCell>
                 <TableCell align="center">
-                  {mutation.data.totalGastado.cliente.apellido}
+                  {mutation?.data?.totalGastado?.cliente?.apellido}
                 </TableCell>
                 <TableCell align="center">
-                  {mutation.data.totalGastado.cliente.codigo}
+                  {mutation?.data?.totalGastado?.cliente?.codigo}
                 </TableCell>
-                <TableCell align="center" style={{ color: "green", fontWeight: 'bold' }}>
-                  {mutation.data.totalGastado.totalGastado}
+                <TableCell
+                  align="center"
+                  style={{ color: "green", fontWeight: "bold" }}
+                >
+                  {mutation?.data?.totalGastado?.totalGastado}
                 </TableCell>
               </TableRow>
             </TableBody>
           </Table>
         </Box>
       )}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogContent>
           {pdfBlob && (
             <iframe
@@ -169,8 +201,15 @@ function TableClientsSalesTotal() {
           )}
         </DialogContent>
       </Dialog>
-      <Box sx={{ display: "flex", justifyContent: "center", marginTop: "2rem" }}>
-        <Button variant="contained" color="primary" onClick={generatePDF} style={{ marginBottom: "10px" }}>
+      <Box
+        sx={{ display: "flex", justifyContent: "center", marginTop: "2rem" }}
+      >
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={generatePDF}
+          style={{ marginBottom: "10px" }}
+        >
           Guardar Reporte
         </Button>
       </Box>

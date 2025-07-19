@@ -75,7 +75,7 @@ const TableVentaComponent = ({
           </TableRow>
           <TableRow
             className={classes.tableHeader}
-            sx={{ backgroundColor: "#3d97ef" }}
+            sx={{ backgroundColor: "#f5f5f5" }}
           >
             <TableCell sx={{ fontWeight: "bold", color: "#fff" }}>
               Producto

@@ -1,31 +1,20 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useContext, useState } from "react";
 import { useMutation } from "react-query";
-import IconButton from "@mui/material/IconButton";
-import AddIcon from "@mui/icons-material/Add";
-import RemoveIcon from "@mui/icons-material/Remove";
-import Button from "@mui/material/Button";
-import { useStyles } from "./carouselMoney.styles";
-import Alert from "@mui/material/Alert";
-import Snackbar from "@mui/material/Snackbar";
-import cajaOpenAddService from "../../../async/services/post/cajaOpenAddService";
-import twoHundred from "../../../assets/images/200.jpg";
-import oneHundred from "../../../assets/images/100.jpg";
-import fifty from "../../../assets/images/50.jpg";
-import twenty from "../../../assets/images/20.jpg";
-import teen from "../../../assets/images/10.jpg";
-import five from "../../../assets/images/5.jpg";
-import two from "../../../assets/images/2.jpg";
-import one from "../../../assets/images/1.jpg";
-import fiftyCent from "../../../assets/images/050.jpg";
-import twentyCent from "../../../assets/images/020.jpg";
-import teenCent from "../../../assets/images/010.jpg";
-import { Box } from "@mui/material";
-import TextField from "@mui/material/TextField";
-import moveCashAddService from "../../../async/services/post/moveCashAddService";
-import { getLocalDateTime } from "../../../utils/getDate";
+import {
+  Box,
+  Button,
+  TextField,
+  Snackbar,
+  Alert,
+  Typography,
+} from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
-import cajaCloseAddService from "../../../async/services/post/cajaCloseAddService";
 import { MainContext } from "../../../context/MainContext";
+import cajaOpenAddService from "../../../async/services/post/cajaOpenAddService";
+import moveCashAddService from "../../../async/services/post/moveCashAddService";
+import cajaCloseAddService from "../../../async/services/post/cajaCloseAddService";
+import { getLocalDateTime } from "../../../utils/getDate";
+import TableMovementsComponent from "./TableMovementsComponent";
 
 function CarouselMoneyComponent({
   caja,
@@ -34,163 +23,95 @@ function CarouselMoneyComponent({
   setEditingEnabled,
   cajaState,
 }) {
-  const classes = useStyles();
   const {
     user,
     refetch: refetchContext,
     setOpenCaja,
   } = useContext(MainContext);
 
-  const initialDenominations = [
-    { tipo_dinero: "billete", denominacion: 200, cantidad: 0 },
-    { tipo_dinero: "billete", denominacion: 100, cantidad: 0 },
-    { tipo_dinero: "billete", denominacion: 50, cantidad: 0 },
-    { tipo_dinero: "billete", denominacion: 20, cantidad: 0 },
-    { tipo_dinero: "billete", denominacion: 10, cantidad: 0 },
-    { tipo_dinero: "moneda", denominacion: 5, cantidad: 0 },
-    { tipo_dinero: "moneda", denominacion: 2, cantidad: 0 },
-    { tipo_dinero: "moneda", denominacion: 1, cantidad: 0 },
-    { tipo_dinero: "moneda", denominacion: 0.5, cantidad: 0 },
-    { tipo_dinero: "moneda", denominacion: 0.2, cantidad: 0 },
-    { tipo_dinero: "moneda", denominacion: 0.1, cantidad: 0 },
-  ];
-
-  const [denominaciones, setDenominaciones] = useState(initialDenominations);
-  const [total, setTotal] = useState(0);
-  const [totalChange, setTotalChange] = useState(0);
   const [descripcion, setDescripcion] = useState("");
+  const [montoAgregar, setMontoAgregar] = useState("");
+  const [montoQuitar, setMontoQuitar] = useState("");
+  const [montoInicial, setMontoInicial] = useState("");
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   });
 
-  const images = [
-    twoHundred,
-    oneHundred,
-    fifty,
-    twenty,
-    teen,
-    five,
-    two,
-    one,
-    fiftyCent,
-    twentyCent,
-    teenCent,
-  ];
-
-  useEffect(() => {
-    setTotalChange(0);
-    setDescripcion("");
-    if (!cajaState.isCajaCerrada) {
-      const updatedDenominations = initialDenominations.map((denom) => {
-        const matchingDenomination = caja?.denominaciones.find(
-          (d) =>
-            d.tipo_dinero === denom.tipo_dinero &&
-            parseFloat(d.denominacion) === parseFloat(denom.denominacion)
-        );
-
-        const cantidad = matchingDenomination
-          ? matchingDenomination.cantidad
-          : denom.cantidad;
-
-        return { ...denom, cantidad };
-      });
-      setDenominaciones(updatedDenominations);
-      updateTotal(updatedDenominations);
-    } else {
-      setDenominaciones(initialDenominations);
-      setTotal(0);
-    }
-  }, [caja, editingEnabled]);
-
-  const updateTotal = (denominaciones) => {
-    const newTotal = denominaciones.reduce(
-      (acc, denom) => acc + denom.denominacion * denom.cantidad,
-      0
-    );
-    setTotal(newTotal);
+  const showSnackbar = (message, severity) => {
+    setSnackbar({ open: true, message, severity });
   };
 
-  const handleIncrease = (index, denominacion) => {
-    const newDenominaciones = [...denominaciones];
-    newDenominaciones[index].cantidad += 1;
-    setDenominaciones(newDenominaciones);
-    updateTotal(newDenominaciones);
-    setTotalChange(totalChange + denominacion);
-  };
-
-  const handleDecrease = (index, denominacion) => {
-    const newDenominaciones = [...denominaciones];
-    if (newDenominaciones[index].cantidad > 0) {
-      newDenominaciones[index].cantidad -= 1;
-      setDenominaciones(newDenominaciones);
-      updateTotal(newDenominaciones);
-      setTotalChange(totalChange - denominacion);
-    }
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   const handleDescripcionChange = (event) => {
     setDescripcion(event.target.value);
   };
 
-  const mutation = useMutation(
+  const handleAgregarChange = (event) => {
+    const value = event.target.value;
+    setMontoAgregar(value);
+    if (value !== "") setMontoQuitar(""); // Bloquear el otro
+  };
+
+  const handleQuitarChange = (event) => {
+    const value = event.target.value;
+    setMontoQuitar(value);
+    if (value !== "") setMontoAgregar(""); // Bloquear el otro
+  };
+
+  const mutationOpenCaja = useMutation(
     () =>
       cajaOpenAddService({
-        monto_inicial: total,
-        denominaciones,
+        monto_inicial: montoInicial,
         id_trabajador: user?.id_trabajador,
       }),
     {
       onSuccess: () => {
-        setSnackbar({
-          open: true,
-          message: "Datos enviados exitosamente!",
-          severity: "success",
-        });
-        setEditingEnabled(false);
+        showSnackbar("Caja abierta exitosamente!", "success");
         setOpenCaja(true);
         refetch();
         refetchContext();
       },
       onError: (error) => {
-        setSnackbar({
-          open: true,
-          message: `Error al enviar los datos: ${error.message}`,
-          severity: "error",
-        });
+        showSnackbar(`Error al abrir la caja: ${error.message}`, "error");
       },
     }
   );
 
   const mutationMoveCash = useMutation(
-    () =>
-      moveCashAddService({
+    () => {
+      const monto =
+        montoAgregar !== ""
+          ? parseFloat(montoAgregar)
+          : -parseFloat(montoQuitar);
+      return moveCashAddService({
         id_caja: caja?.caja?.id_caja,
-        tipo_movimiento: totalChange < 0 ? "retiro" : "ingreso",
-        monto: totalChange,
+        tipo_movimiento: monto < 0 ? "retiro" : "ingreso",
+        monto,
         motivo: descripcion,
         fecha_movimiento: getLocalDateTime(),
-        denominacionesDetalles: denominaciones,
         id_trabajador: user?.id_trabajador,
-      }),
+      });
+    },
     {
       onSuccess: () => {
-        setSnackbar({
-          open: true,
-          message: "Datos enviados exitosamente!",
-          severity: "success",
-        });
+        showSnackbar("Movimiento registrado exitosamente!", "success");
         setEditingEnabled(false);
+        setMontoAgregar("");
+        setMontoQuitar("");
+        setDescripcion("");
         refetch();
         refetchContext();
       },
       onError: (error) => {
-        setSnackbar({
-          open: true,
-          message: `Error al enviar los datos: ${error.message}`,
-          severity: "error",
-        });
+        showSnackbar(
+          `Error al registrar el movimiento: ${error.message}`,
+          "error"
+        );
       },
     }
   );
@@ -203,174 +124,175 @@ function CarouselMoneyComponent({
       }),
     {
       onSuccess: () => {
-        setSnackbar({
-          open: true,
-          message: "Caja cerrada exitosamente!",
-          severity: "success",
-        });
+        showSnackbar("Caja cerrada exitosamente!", "success");
         setEditingEnabled(false);
         setOpenCaja(false);
         refetch();
         refetchContext();
       },
       onError: (error) => {
-        setSnackbar({
-          open: true,
-          message: `Error al enviar los datos: ${error.message}`,
-          severity: "error",
-        });
+        showSnackbar(`Error al cerrar la caja: ${error.message}`, "error");
       },
     }
   );
 
-  const handleSubmit = () => {
-    if (caja?.caja?.fecha_cierre === null && caja?.caja?.id_caja) {
-      mutationMoveCash.mutate();
-    } else {
-      mutation.mutate();
-    }
+  const handleSubmitMovimiento = () => {
+    mutationMoveCash.mutate();
   };
 
-  const handleCloseCash = () => {
-    mutationCloseCash.mutate();
+  const handleSubmitApertura = () => {
+    mutationOpenCaja.mutate();
   };
 
-  const handleCloseSnackbar = () => {
-    setSnackbar({ ...snackbar, open: false });
-  };
+  const montoFinal = parseFloat(caja?.caja?.monto_final || 0);
+  const cambio =
+    montoAgregar !== ""
+      ? parseFloat(montoAgregar)
+      : montoQuitar !== ""
+      ? -parseFloat(montoQuitar)
+      : 0;
 
   return (
-    <Box>
+    <Box
+      sx={{
+        padding: "2rem",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 4,
+      }}
+    >
+      <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+        Caja actual
+      </Typography>
+      <Typography variant="h2" color="primary">
+        Bs. {montoFinal.toFixed(2)}
+      </Typography>
+
+      {/* Botones de acción */}
       {!cajaState.isCajaVacia && !cajaState.isCajaCerrada && (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            paddingLeft: "4rem",
-            paddingRight: "4rem",
-          }}
-        >
+        <Box sx={{ display: "flex", gap: 2 }}>
           <Button
             variant="contained"
             color="primary"
             onClick={() => setEditingEnabled(!editingEnabled)}
-            className={classes.toggleButton}
-            sx={{ marginTop: "2rem" }}
           >
             {editingEnabled ? "Cancelar" : "Registrar movimiento"}
           </Button>
-
           <Button
             variant="contained"
-            //endIcon={<SendIcon />}
-            onClick={handleCloseCash}
-            className={classes.toggleButton}
-            sx={{ marginTop: "2rem" }}
+            color="error"
+            onClick={mutationCloseCash.mutate}
           >
             Cerrar caja
           </Button>
         </Box>
       )}
-      <Box className={classes.container}>
-        {editingEnabled &&
-        !cajaState.isCajaVacia &&
-        !cajaState.isCajaCerrada ? (
+
+      {/* Formulario de movimiento */}
+      {editingEnabled && !cajaState.isCajaVacia && (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 2,
+            width: "100%",
+            maxWidth: 400,
+          }}
+        >
           <TextField
-            id="outlined-textarea"
-            label="Descripcion"
-            placeholder="Descripcion de movimiento"
-            sx={{ width: "25rem" }}
+            label="Motivo del movimiento"
+            placeholder="Ej: Retiro para cambio"
+            fullWidth
             multiline
             required
             value={descripcion}
             onChange={handleDescripcionChange}
           />
-        ) : null}
-        <Box className={classes.total}>
-          {editingEnabled && totalChange < 0 && (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-              <h2 style={{ color: "red" }}>{totalChange.toFixed(2)}</h2>
-              <AddIcon />
-            </Box>
-          )}
-          {caja && (
-            <h2>Caja: {parseFloat(caja?.caja?.monto_final).toFixed(2)}</h2>
-          )}
-          {editingEnabled && totalChange > 0 && (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-              <AddIcon />
-              <h2 style={{ color: "green" }}>{totalChange.toFixed(2)}</h2>
-            </Box>
-          )}
-        </Box>
+          <TextField
+            label="Añadir a caja (Bs)"
+            type="number"
+            fullWidth
+            value={montoAgregar}
+            onChange={handleAgregarChange}
+            disabled={montoQuitar !== ""}
+          />
+          <TextField
+            label="Quitar de caja (Bs)"
+            type="number"
+            fullWidth
+            value={montoQuitar}
+            onChange={handleQuitarChange}
+            disabled={montoAgregar !== ""}
+          />
 
-        <Box className={classes.imagesGrid}>
-          {denominaciones.map((denom, index) => (
-            <Box key={index} className={classes.imageContainer}>
-              <img
-                src={images[index]}
-                alt={`money-${denom.denominacion}`}
-                className={classes.image}
-              />
-              <Box className={classes.counterContainer}>
-                {editingEnabled && (
-                  <>
-                    <IconButton
-                      onClick={() => handleDecrease(index, denom.denominacion)}
-                      className={classes.button}
-                    >
-                      <RemoveIcon />
-                    </IconButton>
-                  </>
-                )}
-                <span className={classes.counter}>{denom.cantidad}</span>
-                {editingEnabled && (
-                  <>
-                    <IconButton
-                      onClick={() => handleIncrease(index, denom.denominacion)}
-                      className={classes.button}
-                    >
-                      <AddIcon />
-                    </IconButton>
-                  </>
-                )}
-              </Box>
-            </Box>
-          ))}
-        </Box>
+          <Typography color="text.secondary">
+            Monto final estimado: Bs. {(montoFinal + cambio).toFixed(2)}
+          </Typography>
 
+          <Button
+            variant="contained"
+            endIcon={<SendIcon />}
+            onClick={handleSubmitMovimiento}
+            fullWidth
+            disabled={
+              (!montoAgregar && !montoQuitar) ||
+              parseFloat(montoAgregar || montoQuitar) <= 0 ||
+              descripcion.trim() === ""
+            }
+          >
+            Registrar movimiento
+          </Button>
+        </Box>
+      )}
+
+      {/* Formulario de apertura */}
+      {cajaState.isCajaVacia && (
         <Box
           sx={{
             display: "flex",
-            gap: 5,
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 2,
             width: "100%",
-            justifyContent: "center",
+            maxWidth: 400,
           }}
         >
-          {editingEnabled && (
-            <Button
-              variant="contained"
-              //color="#3d97ef"
-              onClick={handleSubmit}
-              className={classes.saveButton}
-              sx={{ marginTop: "2rem", backgroundColor: "#3d97ef" }}
-            >
-              Enviar
-            </Button>
-          )}
+          <TextField
+            label="Monto inicial de apertura"
+            type="number"
+            fullWidth
+            value={montoInicial}
+            onChange={(e) => setMontoInicial(parseFloat(e.target.value) || "")}
+            required
+            helperText={montoInicial <= 0 ? "El monto debe ser mayor a 0" : ""}
+          />
+          <Button
+            variant="contained"
+            endIcon={<SendIcon />}
+            onClick={handleSubmitApertura}
+            fullWidth
+            disabled={montoInicial <= 0}
+          >
+            Abrir caja
+          </Button>
         </Box>
-
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={5000}
+      )}
+      {caja?.caja && <TableMovementsComponent caja={caja?.caja} />}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+      >
+        <Alert
           onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
         >
-          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity}>
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
-      </Box>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

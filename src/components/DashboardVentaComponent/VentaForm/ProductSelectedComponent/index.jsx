@@ -10,18 +10,15 @@ import {
   Button,
   TextField,
   Typography,
-  Grid,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  Box,
 } from "@mui/material";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import useStyles from "./tableProductSelect.styles";
 import ClienteAutocompleteComponent from "../ClienteAutocompleteComponent";
 import ProductoAutocompleteComponent from "../ProductoAutocompleteComponent";
 import MetodoPagoComponent from "../MetodoPagoComponent";
-
+import DeleteForeverTwoToneIcon from "@mui/icons-material/DeleteForeverTwoTone";
+import CloseIcon from "@mui/icons-material/Close";
 const ProductSelectedComponent = ({
   productosSeleccionados,
   productosDetallados,
@@ -38,33 +35,62 @@ const ProductSelectedComponent = ({
   setCantidadPorUnidad,
   metodoPago,
   setMetodoPago,
+  movimientoInventario,
 }) => {
   const classes = useStyles();
 
+  const calcularPrecio = (producto) => {
+    console.log(producto);
+
+    if (producto.precioManual) {
+      return producto.precioManual;
+    }
+    if (producto.newValue.metodoVentaBase) {
+      return producto.newValue.metodoVentaBase.precio || 0;
+    }
+
+    return producto.newValue.precio || 0;
+  };
+
+  const calcularCantidadActiva = (producto) => {
+    if (producto.metodoSeleccionado) {
+      if (producto.pesoMetodoCantidad) {
+        return producto.pesoMetodoCantidad || 0;
+      }
+      return producto.cantidadMetodo || 0;
+    }
+
+    const cantidadActiva =
+      producto.cantidadPorUnidad ||
+      producto.peso ||
+      producto.cantidad ||
+      producto.cantidadMetodo ||
+      0;
+    return cantidadActiva;
+  };
+
   const calcularSumaTotal = () =>
     productosDetallados.reduce((total, producto) => {
-      const precio = producto.metodoSeleccionado
-        ? producto.metodoSeleccionado.precio
-        : producto?.newValue?.inventarios[0]?.lote?.producto?.precio || 0;
-      const cantidadActiva = producto.metodoSeleccionado
-        ? producto.cantidadMetodo || 0
-        : producto.cantidadPorUnidad ||
-          producto.peso ||
-          producto.cantidad ||
-          producto.cantidadMetodo ||
-          0;
-      return total + precio * cantidadActiva;
+      const precio = calcularPrecio(producto);
+
+      const cantidadActiva = calcularCantidadActiva(producto);
+      if (producto.precioManual) {
+        return total + precio;
+      }
+
+      return Number((total + precio * cantidadActiva).toFixed(2));
     }, 0);
 
   useEffect(() => {
     const total = calcularSumaTotal();
+
     setTotalPrice(total);
   }, [productosDetallados, setTotalPrice]);
 
   const handleInputChange = (index, field, value, maxValue) => {
     const newValue = Math.min(value, maxValue);
-
     const updatedProductos = [...productosDetallados];
+
     updatedProductos[index] = {
       ...updatedProductos[index],
       [field]: typeof value === "number" ? newValue : value,
@@ -72,119 +98,130 @@ const ProductSelectedComponent = ({
 
     setProductosDetallados(updatedProductos);
   };
-  //   if (Array.isArray(productosDetallados) && productosDetallados.length > 0) {
-  //     const updatedProductos = productosDetallados.map((producto) => {
-  //       const {
-  //         pesoLimit,
-  //         cantLimit,
-  //         cantUnitLimit,
-  //         peso,
-  //         cantidad,
-  //         cantidadPorUnidad,
-  //       } = producto;
-
-  //       return {
-  //         ...producto,
-  //         peso: pesoLimit > 0 && peso === undefined ? 1 : peso,
-  //         cantidad:
-  //           cantLimit > 0 && cantUnitLimit === 0 && cantidad === undefined
-  //             ? 1
-  //             : cantidad,
-  //         cantidadPorUnidad:
-  //           cantUnitLimit > 0 &&
-  //           pesoLimit <= 0 &&
-  //           cantidadPorUnidad === undefined
-  //             ? 1
-  //             : cantidadPorUnidad,
-  //       };
-  //     });
-
-  //     setProductosDetallados(updatedProductos);
-  //   }
-  // }, [productosDetallados]);
 
   const handleDelete = (index) => {
     const updatedProductos = productosDetallados.filter((_, i) => i !== index);
     setProductosDetallados(updatedProductos);
   };
 
-  const handleChangeMetodo = (event) => {
-    setMetodoSeleccionado(event.target.value);
-  };
+  function generarProductosConMetodosVenta(productosUnicosFiltrados) {
+    const productosExtendidos = [...productosUnicosFiltrados];
+
+    productosUnicosFiltrados.forEach((producto) => {
+      if (!producto.inventarios || producto.inventarios.length === 0) return;
+
+      const metodosVenta = producto?.metodosVenta;
+
+      if (Array.isArray(metodosVenta) && metodosVenta.length > 0) {
+        metodosVenta.forEach((metodo) => {
+          const nuevoProducto = {
+            ...producto,
+            id_producto: producto.id_producto,
+            nombre: producto.nombre,
+            forma_farmaceutica: metodo.descripcion,
+            metodoVentaBase: metodo,
+          };
+          productosExtendidos.push(nuevoProducto);
+        });
+      }
+    });
+
+    return productosExtendidos;
+  }
+
+  const productosConTotales = generarProductosConMetodosVenta(
+    productosUnicosFiltrados
+  ).map((producto) => {
+    let totalCantidad = 0;
+    let totalSubCantidad = 0;
+
+    if (producto.metodoVentaBase) {
+      const divisor = producto.metodoVentaBase.cantidad_por_metodo || 1;
+
+      totalCantidad = Math.floor(
+        producto.inventarios.reduce(
+          (acc, inv) => acc + (inv.cantidad || 0),
+          0
+        ) / divisor
+      );
+
+      totalSubCantidad = Math.floor(
+        producto.inventarios.reduce(
+          (acc, inv) => acc + (inv.subCantidad || 0),
+          0
+        ) / divisor
+      );
+    } else {
+      totalCantidad = producto.inventarios.reduce(
+        (acc, inv) => acc + (inv.cantidad || 0),
+        0
+      );
+      totalSubCantidad = producto.inventarios.reduce(
+        (acc, inv) => acc + (inv.subCantidad || 0),
+        0
+      );
+    }
+
+    return {
+      ...producto,
+      totalCantidad,
+      totalSubCantidad,
+    };
+  });
 
   return (
     <TableContainer component={Paper}>
-      <Table>
+      <TableRow sx={{ width: "100%", display: "flex" }}>
+        <TableCell className={classes.cell} sx={{ flex: "0.8" }}>
+          <ProductoAutocompleteComponent
+            productosUnicosFiltrados={productosUnicosFiltrados}
+            ventaData={ventaData}
+            handleProductoChange={handleProductoChange}
+            setCantidad={setCantidad}
+            setCantidadPorUnidad={setCantidadPorUnidad}
+            productosConTotales={productosConTotales}
+          />
+        </TableCell>
+        <TableCell className={classes.cell} sx={{ flex: "0.5" }}>
+          {!movimientoInventario ? (
+            <MetodoPagoComponent
+              metodoPago={metodoPago}
+              setMetodoPago={setMetodoPago}
+            />
+          ) : null}
+        </TableCell>
+        <TableCell className={classes.cell} sx={{ flex: "0.5" }}>
+          <ClienteAutocompleteComponent
+            clientes={clientes}
+            ventaData={ventaData}
+            setCliente={setCliente}
+            handleOpenClientModal={handleOpenClientModal}
+            productosSeleccionados={productosSeleccionados}
+          />
+        </TableCell>
+      </TableRow>
+
+      <Table
+        style={{
+          maxHeight: "70vh",
+          overflowY: "auto",
+          width: "100%",
+        }}
+      >
         <TableHead>
-          <TableRow>
-            <TableCell
-              sx={{
-                fontWeight: "bold",
-                color: "#000",
-                fontSize: "1.2rem",
-                textTransform: "capitalize",
-              }}
-              colSpan={2}
-            >
-              <ClienteAutocompleteComponent
-                clientes={clientes}
-                ventaData={ventaData}
-                setCliente={setCliente}
-                handleOpenClientModal={handleOpenClientModal}
-                productosSeleccionados={productosSeleccionados}
-              />
-            </TableCell>
-            <TableCell
-              sx={{
-                fontWeight: "bold",
-                color: "#000",
-                fontSize: "1.2rem",
-                flexDirection: "column",
-                alignItems: "center",
-              }}
-              colSpan={2}
-            >
-              <MetodoPagoComponent
-                metodoPago={metodoPago}
-                setMetodoPago={setMetodoPago}
-              />
-            </TableCell>
-            <TableCell
-              sx={{
-                fontWeight: "bold",
-                color: "#000",
-                fontSize: "1.2rem",
-                alignItems: "center",
-              }}
-              colSpan={2}
-            >
-              <ProductoAutocompleteComponent
-                productosUnicosFiltrados={productosUnicosFiltrados}
-                ventaData={ventaData}
-                handleProductoChange={handleProductoChange}
-                setCantidad={setCantidad}
-                setCantidadPorUnidad={setCantidadPorUnidad}
-              />
-            </TableCell>
-          </TableRow>
-          <TableRow
-            className={classes.tableHeader}
-            sx={{ backgroundColor: "#3d97ef" }}
-          >
+          <TableRow className={classes.tableHeader}>
             {[
               "Producto",
+              "uso rest.",
               "Precio",
-              "Peso",
-              "Cantidad",
               "Cant. por unidad",
-              "Medodo V",
-              "Acciones",
+              "Stock",
+              "Eliminar",
             ].map((header, index) => (
               <TableCell
                 key={index}
                 sx={{
                   fontWeight: "bold",
-                  color: "#fff",
                   width: "16.6%",
                 }}
               >
@@ -197,208 +234,142 @@ const ProductSelectedComponent = ({
           {Array.isArray(productosDetallados) &&
             productosDetallados?.length > 0 &&
             productosDetallados?.map((producto, index) => {
-              const {
-                cantLimit,
-                cantUnitLimit,
-                pesoLimit,
-                newValue,
-                metodosVenta,
-                metodoSeleccionado,
-              } = producto;
+              const { cantUnitLimit, pesoLimit, newValue, metodoSeleccionado } =
+                producto;
+              const totalSubCantidad = producto?.newValue?.totalSubCantidad;
+              console.log(producto.newValue.metodoVentaBase);
 
               return (
                 <TableRow key={index}>
-                  <TableCell>{newValue?.nombre}</TableCell>
-                  <TableCell>
-                    {metodoSeleccionado
-                      ? metodoSeleccionado.precio
-                      : newValue?.inventarios[0]?.lote?.producto?.precio}{" "}
-                    Bs
+                  <TableCell
+                    sx={{
+                      textTransform: "capitalize",
+                      fontWeight: "bold",
+                      fontSize: ".8rem",
+                    }}
+                  >
+                    {newValue?.nombre} {newValue?.forma_farmaceutica}{" "}
+                    {newValue?.concentracion}
                   </TableCell>
-                  <TableCell>
-                    {pesoLimit > 0 && (
-                      <>
-                        <TextField
-                          label="Peso"
-                          type="number"
-                          value={producto.peso || ""}
-                          onChange={(e) =>
-                            handleInputChange(
-                              index,
-                              "peso",
-                              parseFloat(e.target.value),
-                              pesoLimit
-                            )
-                          }
-                          inputProps={{
-                            max: pesoLimit,
-                            step: "0.01",
-                          }}
-                          fullWidth
-                        />
-                        <Typography variant="caption" color="textSecondary">
-                          Máximo: {pesoLimit} Kg
-                        </Typography>
-                      </>
-                    )}
+                  <TableCell
+                    sx={{
+                      textTransform: "capitalize",
+                      fontWeight: "bold",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    {newValue?.uso_res ? "si" : "no"}{" "}
                   </TableCell>
-                  <TableCell>
-                    {cantUnitLimit === 0 && cantLimit > 0 && (
-                      <>
-                        <TextField
-                          label="Cantidad"
-                          type="number"
-                          value={producto.cantidad || ""}
-                          onChange={(e) =>
-                            handleInputChange(
-                              index,
-                              "cantidad",
-                              parseInt(e.target.value),
-                              cantLimit
-                            )
-                          }
-                          inputProps={{
-                            max: cantLimit,
-                          }}
-                          fullWidth
-                        />
-                        <Typography variant="caption" color="textSecondary">
-                          Máximo: {cantLimit}
-                        </Typography>
-                      </>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {cantUnitLimit !== 0 && pesoLimit <= 0 && (
-                      <>
-                        {metodoSeleccionado ? (
-                          <>
-                            <TextField
-                              label="Cantidad por metodo"
-                              type="number"
-                              value={producto.cantidadMetodo || ""}
-                              onChange={(e) =>
-                                handleInputChange(
-                                  index,
-                                  "cantidadMetodo",
-                                  parseInt(e.target.value),
-                                  Math.trunc(
-                                    cantUnitLimit /
-                                      metodoSeleccionado?.cantidad_por_metodo
-                                  )
-                                )
-                              }
-                              inputProps={
-                                {
-                                  //max: cantUnitLimit,
-                                }
-                              }
-                              fullWidth
-                            />
-                            <Typography variant="caption" color="textSecondary">
-                              Máximo:{" "}
-                              {Math.trunc(
-                                cantUnitLimit /
-                                  metodoSeleccionado?.cantidad_por_metodo
-                              )}
-                            </Typography>
-                          </>
-                        ) : (
-                          <>
-                            <TextField
-                              label="Cantidad por unidad"
-                              type="number"
-                              value={producto.cantidadPorUnidad || ""}
-                              onChange={(e) =>
-                                handleInputChange(
-                                  index,
-                                  "cantidadPorUnidad",
-                                  parseInt(e.target.value),
-                                  cantUnitLimit
-                                )
-                              }
-                              inputProps={{
-                                max: cantUnitLimit,
-                              }}
-                              fullWidth
-                            />
-                            <Typography variant="caption" color="textSecondary">
-                              Máximo: {cantUnitLimit} u
-                            </Typography>
-                          </>
-                        )}
-                      </>
-                    )}
+                  <TableCell sx={{ color: "green" }}>
+                    <>
+                      {producto.newValue.metodoVentaBase
+                        ? producto.newValue.metodoVentaBase.precio
+                        : producto.newValue.precio}{" "}
+                      Bs
+                    </>
                   </TableCell>
 
                   <TableCell>
-                    {Array.isArray(metodosVenta) && metodosVenta.length > 0 ? (
-                      <FormControl fullWidth>
-                        <InputLabel>Mét. Venta</InputLabel>
-                        <Select
+                    {cantUnitLimit !== 0 && pesoLimit <= 0 && (
+                      <>
+                        <TextField
+                          type="number"
+                          value={producto.cantidadPorUnidad || ""}
                           onChange={(e) =>
                             handleInputChange(
                               index,
-                              "metodoSeleccionado",
-                              e.target.value
+                              "cantidadPorUnidad",
+                              parseInt(e.target.value),
+                              totalSubCantidad
                             )
                           }
-                          label="Método de Venta"
-                        >
-                          {metodosVenta.map((metodo) => (
-                            <MenuItem
-                              key={metodo.id_metodo_venta}
-                              value={metodo}
-                            >
-                              {metodo.descripcion}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                        <Typography variant="caption" color="textSecondary">
-                          Máximo: {cantLimit} cajas
-                        </Typography>
-                      </FormControl>
-                    ) : null}
+                          sx={{
+                            width: "10ch",
+                            "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
+                              {
+                                WebkitAppearance: "none",
+                                margin: 0,
+                              },
+                            "& input[type=number]": {
+                              MozAppearance: "textfield",
+                            },
+                          }}
+                          inputProps={{
+                            max: totalSubCantidad,
+                          }}
+                          fullWidth={false}
+                        />
+                      </>
+                    )}
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      alignItems: "center",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        backgroundColor: "#66cc66",
+                        width: "40%",
+                        padding: ".5rem 0 .5rem 0",
+                        borderRadius: "1rem",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {totalSubCantidad}
+                    </Box>
                   </TableCell>
                   <TableCell>
-                    <Button onClick={() => handleDelete(index)}>
-                      <DeleteOutlineOutlinedIcon />
+                    <Button
+                      onClick={() => handleDelete(index)}
+                      //variant="contained"
+                      color="error"
+                    >
+                      <CloseIcon sx={{ color: "red", fontSize: "2rem" }} />
                     </Button>
                   </TableCell>
                 </TableRow>
               );
             })}
-          <TableRow>
-            <TableCell
-              sx={{ fontWeight: "bold", fontSize: "2rem" }}
-              colSpan={1}
-            >
-              Total
-            </TableCell>
-            <TableCell
-              sx={{ fontWeight: "bold", fontSize: "2rem" }}
-              colSpan={3}
-            >
-              {calcularSumaTotal()} Bs
-            </TableCell>
-            <TableCell sx={{ fontWeight: "bold" }} colSpan={1}>
-              <Button
-                variant="contained"
-                style={{
-                  backgroundColor: "red",
-                  color: "#fff",
-                  fontWeight: "bold",
-                  width: "10rem",
-                }}
-                fullWidth
-                onClick={handleCancelar}
-              >
-                Cancelar
-              </Button>
-            </TableCell>
-          </TableRow>
         </TableBody>
       </Table>
+      <TableRow>
+        {movimientoInventario ? null : (
+          <TableCell
+            sx={{ fontWeight: "bold", fontSize: "2rem", color: "green" }}
+            colSpan={1}
+          >
+            Total
+          </TableCell>
+        )}
+        {movimientoInventario ? null : (
+          <TableCell
+            sx={{ fontWeight: "bold", fontSize: "2rem", color: "green" }}
+            colSpan={3}
+          >
+            {calcularSumaTotal()} Bs
+          </TableCell>
+        )}
+
+        <TableCell sx={{ fontWeight: "bold" }} colSpan={1}>
+          <Button
+            variant="contained"
+            style={{
+              backgroundColor: "red",
+              color: "#fff",
+              fontWeight: "bold",
+              width: "10rem",
+            }}
+            fullWidth
+            onClick={handleCancelar}
+          >
+            Cancelar
+          </Button>
+        </TableCell>
+      </TableRow>
     </TableContainer>
   );
 };

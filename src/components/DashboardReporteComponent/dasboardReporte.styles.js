@@ -5,8 +5,8 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    flexWrap: "wrap", // Para que los elementos se ajusten a la pantalla
-    gap: "4rem", // Espacio entre los elementos
+    flexWrap: "wrap",
+    gap: "2rem",
     marginTop: "20px",
   },
   card: {
@@ -23,8 +23,8 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   image: {
-    width: "150px",
-    height: "150px",
+    width: "100px",
+    height: "100px",
     objectFit: "contain",
   },
   title: {

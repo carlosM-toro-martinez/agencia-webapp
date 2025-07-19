@@ -11,11 +11,11 @@ const useStyles = makeStyles((theme) => ({
     boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
   },
   tableHeader: {
-    backgroundColor: "#3d97ef",
+    backgroundColor: "#f5f5f5",
+    textAlign: "center",
   },
   tableCell: {
     fontWeight: "bold",
-    color: "#fff",
   },
 }));
 

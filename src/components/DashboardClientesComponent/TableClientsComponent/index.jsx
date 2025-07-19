@@ -86,8 +86,6 @@ function TableClientsComponent({
   };
 
   const handleSearchChange = (event) => {
-    console.log(event?.target?.value);
-
     setSearchText(event?.target?.value);
   };
 
@@ -122,55 +120,55 @@ function TableClientsComponent({
             <TableRow>
               <TableCell
                 className={classes.tableCell}
-                sx={{ color: "#fff", fontWeight: "bold" }}
+                sx={{ fontWeight: "bold" }}
               >
                 Nombre
               </TableCell>
               <TableCell
                 className={classes.tableCell}
-                sx={{ color: "#fff", fontWeight: "bold" }}
+                sx={{ fontWeight: "bold" }}
               >
                 Apellido
               </TableCell>
               <TableCell
                 className={classes.tableCell}
-                sx={{ color: "#fff", fontWeight: "bold" }}
+                sx={{ fontWeight: "bold" }}
               >
                 Código
               </TableCell>
               <TableCell
                 className={classes.tableCell}
-                sx={{ color: "#fff", fontWeight: "bold" }}
+                sx={{ fontWeight: "bold" }}
               >
                 NIT/CI
               </TableCell>
               <TableCell
                 className={classes.tableCell}
-                sx={{ color: "#fff", fontWeight: "bold" }}
+                sx={{ fontWeight: "bold" }}
               >
                 Teléfono
               </TableCell>
               <TableCell
                 className={classes.tableCell}
-                sx={{ color: "#fff", fontWeight: "bold" }}
+                sx={{ fontWeight: "bold" }}
               >
                 Email
               </TableCell>
               <TableCell
                 className={classes.tableCell}
-                sx={{ color: "#fff", fontWeight: "bold" }}
+                sx={{ fontWeight: "bold" }}
               >
                 Dirección
               </TableCell>
               <TableCell
                 className={classes.tableCell}
-                sx={{ color: "#fff", fontWeight: "bold" }}
+                sx={{ fontWeight: "bold" }}
               >
                 Puntos de Fidelidad
               </TableCell>
               <TableCell
                 className={classes.tableCell}
-                sx={{ color: "#fff", fontWeight: "bold" }}
+                sx={{ fontWeight: "bold" }}
               >
                 Acciones
               </TableCell>

@@ -19,7 +19,7 @@ import { KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import useStyles from "./tableCaja.styles";
-import background from "../../../../assets/images/background.png";
+import background from "../../../../assets/images/logos/3.png";
 
 function TableCajaReport({ reportData }) {
   const classes = useStyles();
@@ -89,7 +89,7 @@ function TableCajaReport({ reportData }) {
     const img = new Image();
     img.src = background;
     img.onload = () => {
-      doc.addImage(img, "PNG", 60, doc.previousAutoTable.finalY + 100, 80, 40);
+      doc.addImage(img, "PNG", 80, doc.previousAutoTable.finalY + 80, 40, 40);
       const pdfOutput = doc.output("blob");
       setPdfBlob(pdfOutput);
       setOpenDialog(true);
@@ -117,24 +117,18 @@ function TableCajaReport({ reportData }) {
       </Dialog>
       <TableContainer component={Paper} className={classes.tableContainer}>
         <Table>
-          <TableHead style={{ backgroundColor: "#3d97ef" }}>
+          <TableHead style={{ backgroundColor: "#f5f5f5" }}>
             <TableRow>
               <TableCell />
-              <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
+              <TableCell style={{ fontWeight: "bold" }}>
                 Monto Inicial
               </TableCell>
-              <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
-                Monto Final
-              </TableCell>
-              <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
+              <TableCell style={{ fontWeight: "bold" }}>Monto Final</TableCell>
+              <TableCell style={{ fontWeight: "bold" }}>
                 Fecha Apertura
               </TableCell>
-              <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
-                Fecha Cierre
-              </TableCell>
-              <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
-                Trabajador
-              </TableCell>
+              <TableCell style={{ fontWeight: "bold" }}>Fecha Cierre</TableCell>
+              <TableCell style={{ fontWeight: "bold" }}>Trabajador</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

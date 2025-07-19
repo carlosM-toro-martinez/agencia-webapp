@@ -12,22 +12,44 @@ const headCells = [
     id: "codigo_barra",
     numeric: false,
     disablePadding: false,
-    label: "Código de Barras",
+    label: "Código",
   },
-  {
-    id: "Cantidad",
-    numeric: true,
-    disablePadding: false,
-    label: "Cantidad (Caja/Paquete)",
-  },
+  // {
+  //   id: "Cantidad",
+  //   numeric: true,
+  //   disablePadding: false,
+  //   label: "Cantidad (Caja/Paquete)",
+  // },
   {
     id: "Cantidad (u)",
     numeric: true,
     disablePadding: false,
     label: "Cantidad (u)",
   },
-  { id: "Peso", numeric: true, disablePadding: false, label: "Peso" },
-  { id: "precio", numeric: true, disablePadding: false, label: "Precio" },
+  {
+    id: "Cantidad (c/p)",
+    numeric: true,
+    disablePadding: false,
+    label: "Cantidad (c/p)",
+  },
+  // {
+  //   id: "forma_farmaceutica",
+  //   numeric: false,
+  //   disablePadding: false,
+  //   label: "Forma",
+  // },
+  // {
+  //   id: "concentracion",
+  //   numeric: false,
+  //   disablePadding: false,
+  //   label: "concentracion",
+  // },
+  {
+    id: "restringido",
+    numeric: false,
+    disablePadding: false,
+    label: "restringido",
+  },
   { id: "actions", numeric: true, disablePadding: false, label: "Acciones" },
 ];
 
@@ -37,10 +59,13 @@ const EnhancedTableHead = () => {
   return (
     <TableHead
       className={classes.tableHead}
-      sx={{ backgroundColor: "#3d97ef" }}
+      sx={{ backgroundColor: "#f5f5f5" }}
     >
       {headCells.map((headCell) => (
-        <TableCell key={headCell.id} sx={{ color: "#fff", fontWeight: "bold" }}>
+        <TableCell
+          key={headCell.id}
+          sx={{ fontWeight: "bold", textTransform: "capitalize" }}
+        >
           {headCell.label}
         </TableCell>
       ))}

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import DrawerComponent from "../../../components/DrawerComponent";
 import { useQuery } from "react-query";
 import productosService from "../../../async/services/get/productosService";
@@ -8,11 +8,17 @@ import clientesService from "../../../async/services/get/clientesService";
 import { MainContext } from "../../../context/MainContext.js";
 import productosLotesService from "../../../async/services/get/productosLotesService.js";
 import inventarioService from "../../../async/services/get/inventarioService.js";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
 
-function CreateVenta() {
-  const { data, isLoading, error, refetch, openCaja } = useContext(MainContext);
-
+function CreateVenta({ movimientoInventario }) {
+  const { data, isLoading, error, refetch, openCaja, user } =
+    useContext(MainContext);
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!user) {
+      navigate("/login", { replace: true });
+    }
+  }, [user, navigate]);
   if (!openCaja) {
     return <Navigate to="/movimiento-caja" />;
   }
@@ -88,6 +94,7 @@ function CreateVenta() {
             refetchClients={refetchClients}
             caja={data}
             refetchCaja={refetch}
+            movimientoInventario={movimientoInventario}
           />
         </Paper>
       </DrawerComponent>

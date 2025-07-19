@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -25,10 +25,13 @@ import { useMutation } from "react-query";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import anularVentaAddService from "../../../../async/services/post/anularVentaAddService";
 import { getLocalDateTime } from "../../../../utils/getDate";
+import { useNavigate } from "react-router-dom";
+import { MainContext } from "../../../../context/MainContext";
 
 function TableVentasReport({ reportData, ventaToday, refetchVentas, caja }) {
   const [utilidades, setUtilidades] = useState([]);
   const [utilidadGlobal, setUtilidadGlobal] = useState(0);
+  console.log(reportData);
 
   useEffect(() => {
     if (reportData && !ventaToday) {
@@ -38,28 +41,33 @@ function TableVentasReport({ reportData, ventaToday, refetchVentas, caja }) {
 
   const calcularUtilidades = (ventas) => {
     let totalGlobalUtilidad = 0;
-    console.log(ventas);
     const resultados = ventas.map((venta) => {
       let utilidadVenta = 0;
       const detallesConUtilidad = [];
-  
+
       venta.detallesVenta.forEach((detalle) => {
         const lote = detalle.lote;
         const detalleCompra = lote.detalleCompra;
-  
+
         let precioCompraPorUnidad;
         if (detalleCompra.subCantidad && detalleCompra.subCantidad > 0) {
           precioCompraPorUnidad =
-            parseFloat(detalleCompra.precio_unitario) /
-            lote.cantidadPorCaja;
+            parseFloat(detalleCompra.precio_unitario) / lote.cantidadPorCaja;
         } else if (lote.peso && lote.peso > 0) {
-          precioCompraPorUnidad = parseFloat(detalleCompra.precio_unitario) / lote.peso;
+          if (detalle.peso < 1) {
+            precioCompraPorUnidad =
+              parseFloat(detalleCompra.precio_unitario) / parseFloat(lote.peso);
+            precioCompraPorUnidad =
+              precioCompraPorUnidad * parseFloat(detalle.peso);
+          } else {
+            precioCompraPorUnidad =
+              parseFloat(detalleCompra.precio_unitario) / lote.peso;
+          }
         } else {
           precioCompraPorUnidad = parseFloat(detalleCompra.precio_unitario);
         }
-          console.log(detalle);
-  
-          const cantidadVendida =
+
+        const cantidadVendida =
           detalle.subCantidad > 0
             ? detalle.subCantidad
             : detalle.cantidad > 0
@@ -67,31 +75,33 @@ function TableVentasReport({ reportData, ventaToday, refetchVentas, caja }) {
             : detalle.peso > 0
             ? detalle.peso
             : 0;
-  
+
         const utilidadDetalle =
-          cantidadVendida *
-          (parseFloat(detalle.precio_unitario) - precioCompraPorUnidad);
-  
+          cantidadVendida < 1
+            ? parseFloat(detalle.precio_unitario) - precioCompraPorUnidad
+            : cantidadVendida *
+              (parseFloat(detalle.precio_unitario) - precioCompraPorUnidad);
+
         utilidadVenta += utilidadDetalle;
-  
+
         detallesConUtilidad.push({
           producto: detalle.producto || "Producto desconocido",
           cantidadVendida,
-          precioCompraPorUnidad: precioCompraPorUnidad.toFixed(2),
+          precioCompraPorUnidad: precioCompraPorUnidad?.toFixed(2),
           precioVentaPorUnidad: parseFloat(detalle.precio_unitario).toFixed(2),
           utilidadDetalle: utilidadDetalle.toFixed(2),
         });
       });
-  
+
       totalGlobalUtilidad += utilidadVenta;
-  
+
       return {
         id_venta: venta.id_venta,
         utilidadVenta: utilidadVenta.toFixed(2),
         detallesConUtilidad,
       };
     });
-  
+
     setUtilidades(resultados);
     setUtilidadGlobal(totalGlobalUtilidad.toFixed(2));
   };
@@ -137,7 +147,6 @@ function TableVentasReport({ reportData, ventaToday, refetchVentas, caja }) {
             "Producto",
             "Cantidad",
             "Cantidad por Unidad",
-            "Peso",
             "Precio Unitario",
             //"Precio Total Unitario",
           ],
@@ -146,7 +155,6 @@ function TableVentasReport({ reportData, ventaToday, refetchVentas, caja }) {
           detalle.producto.nombre,
           detalle.cantidad,
           detalle.subCantidad || "N/A",
-          detalle.peso || "N/A",
           detalle.precio_unitario,
         ]),
         startY: doc.previousAutoTable.finalY + 20,
@@ -187,33 +195,21 @@ function TableVentasReport({ reportData, ventaToday, refetchVentas, caja }) {
       </Dialog>
       <TableContainer component={Paper} className={classes.tableContainer}>
         <Table>
-          <TableHead style={{ backgroundColor: "#3d97ef" }}>
+          <TableHead style={{ backgroundColor: "#f5f5f5" }}>
             <TableRow>
               <TableCell style={{ color: "#fff", fontWeight: "bold" }} />
-              <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
-                Fecha Venta
-              </TableCell>
-              <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
-                Cliente
-              </TableCell>
-              <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
-                Trabajador
-              </TableCell>
-              <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
+              <TableCell style={{ fontWeight: "bold" }}>Fecha Venta</TableCell>
+              <TableCell style={{ fontWeight: "bold" }}>Cliente</TableCell>
+              <TableCell style={{ fontWeight: "bold" }}>Trabajador</TableCell>
+              <TableCell style={{ fontWeight: "bold" }}>
                 Metodo de pago
               </TableCell>
 
-              <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
-                Total
-              </TableCell>
+              <TableCell style={{ fontWeight: "bold" }}>Total</TableCell>
               {ventaToday ? (
-                <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
-                  Acciones
-                </TableCell>
+                <TableCell style={{ fontWeight: "bold" }}>Acciones</TableCell>
               ) : (
-                <TableCell style={{ color: "#fff", fontWeight: "bold" }}>
-                  Utilidades
-                </TableCell>
+                <TableCell style={{ fontWeight: "bold" }}>Utilidades</TableCell>
               )}
             </TableRow>
           </TableHead>
@@ -262,6 +258,9 @@ function TableVentasReport({ reportData, ventaToday, refetchVentas, caja }) {
 }
 
 function VentaRow({ venta, ventaToday, refetchVentas, caja, utilidades }) {
+  const { user } = useContext(MainContext);
+
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -296,7 +295,7 @@ function VentaRow({ venta, ventaToday, refetchVentas, caja, utilidades }) {
       id_producto: detalle.id_producto,
       nombre: detalle.producto.nombre,
       clienteNombre: venta.cliente.nombre,
-      clienteId: ventaAAnular.cliente,
+      clienteId: ventaAAnular.id_cliente,
       id_lote: detalle.id_lote,
       peso: parseFloat(detalle.peso),
       precio: detalle.precio_unitario,
@@ -307,6 +306,7 @@ function VentaRow({ venta, ventaToday, refetchVentas, caja, utilidades }) {
       id_detalle: detalle.id_detalle,
       id_caja: caja?.caja?.id_caja || 1,
       fecha_venta: getLocalDateTime(),
+      total: ventaAAnular?.total,
     }));
     if (transformVenta?.length === 0) {
       transformVenta = [
@@ -321,6 +321,7 @@ function VentaRow({ venta, ventaToday, refetchVentas, caja, utilidades }) {
 
     ventaMutation.mutate(transformVenta);
   };
+  const soloHora = new Date(venta?.fecha_venta).toLocaleTimeString();
 
   return (
     <>
@@ -335,7 +336,7 @@ function VentaRow({ venta, ventaToday, refetchVentas, caja, utilidades }) {
           </IconButton>
         </TableCell>
         <TableCell>
-          {new Date(venta?.fecha_venta).toLocaleDateString()}
+          {new Date(venta?.fecha_venta).toLocaleDateString()} {soloHora}
         </TableCell>
         <TableCell>{`${venta?.cliente?.nombre} ${
           venta.cliente.apellido ? venta?.cliente?.apellido : ""
@@ -345,16 +346,22 @@ function VentaRow({ venta, ventaToday, refetchVentas, caja, utilidades }) {
 
         <TableCell>{venta.total}</TableCell>
         {ventaToday ? (
-          <TableCell>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => handleAnularVenta(venta)}
-              sx={{ backgroundColor: "red", fontWeight: "bold" }}
-            >
-              ANULAR VENTA
-            </Button>
-          </TableCell>
+          user?.id_trabajador === venta?.id_trabajador || user?.id_rol === 1 ? (
+            <TableCell>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleAnularVenta(venta)}
+                sx={{ backgroundColor: "red", fontWeight: "bold" }}
+              >
+                ANULAR VENTA
+              </Button>
+            </TableCell>
+          ) : (
+            <TableCell sx={{ color: "red" }}>
+              Realizada por otro Trabajador
+            </TableCell>
+          )
         ) : (
           <TableCell
             style={{ color: utilidades?.utilidadVenta > 0 ? "green" : "red" }}
@@ -374,9 +381,8 @@ function VentaRow({ venta, ventaToday, refetchVentas, caja, utilidades }) {
                 <TableHead>
                   <TableRow>
                     <TableCell>Producto</TableCell>
-                    <TableCell>Cantidad</TableCell>
+                    {/* <TableCell>Cantidad</TableCell> */}
                     <TableCell>Cantidad por Unidad</TableCell>
-                    <TableCell>Peso</TableCell>
                     <TableCell>Precio Unitario</TableCell>
                   </TableRow>
                 </TableHead>
@@ -384,9 +390,8 @@ function VentaRow({ venta, ventaToday, refetchVentas, caja, utilidades }) {
                   {venta.detallesVenta.map((detalle, index) => (
                     <TableRow key={index}>
                       <TableCell>{detalle?.producto?.nombre}</TableCell>
-                      <TableCell>{detalle.cantidad}</TableCell>
+                      {/* <TableCell>{detalle.cantidad}</TableCell> */}
                       <TableCell>{detalle.subCantidad}</TableCell>
-                      <TableCell>{detalle.peso}</TableCell>
                       <TableCell>{detalle.precio_unitario}</TableCell>
                     </TableRow>
                   ))}

@@ -8,17 +8,6 @@ import DashboardInicioComponent from "../../components/DashboardInicioComponent"
 function Inicio() {
   return (
     <DrawerComponent>
-      {/* <Typography
-          component={"h2"}
-          style={{
-            textAlign: "center",
-            fontSize: "2rem",
-            fontWeight: "bold  ",
-            marginTop: "2rem",
-          }}
-        >
-          Inicio
-        </Typography> */}
       <DashboardInicioComponent />
     </DrawerComponent>
   );

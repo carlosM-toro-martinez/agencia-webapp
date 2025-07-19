@@ -11,14 +11,15 @@ function MetodoPagoComponent({ metodoPago, setMetodoPago }) {
       <InputLabel id="metodo-pago-label">Método de Pago</InputLabel>
       <Select
         labelId="metodo-pago-label"
-        id="metodo-pago"
+        id="metodo-pago-label"
         value={metodoPago}
         onChange={handleChange}
+        label="Método de Pago"
       >
         <MenuItem value="Contado">Contado</MenuItem>
-        <MenuItem value="Prestamo">Préstamo</MenuItem>
-        <MenuItem value="Consignacion">Consignación</MenuItem>
-        <MenuItem value="QR">QR</MenuItem>
+        {/* <MenuItem value="Prestamo">Préstamo</MenuItem>
+        <MenuItem value="Consignacion">Consignación</MenuItem> */}
+        {/* <MenuItem value="QR">QR</MenuItem> */}
       </Select>
     </FormControl>
   );

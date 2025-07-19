@@ -18,6 +18,7 @@ import categoriasService from "../../async/services/get/categoriasService";
 
 function FormProduct({ handleClose, refetchProducts, productData }) {
   const classes = useStyles();
+  console.log(productData);
 
   const [productId, setProductId] = useState(
     productData ? productData.id_producto : null
@@ -26,9 +27,13 @@ function FormProduct({ handleClose, refetchProducts, productData }) {
   const [product, setProduct] = useState({
     nombre: productData ? productData.nombre : "",
     codigo_barra: productData ? productData.codigo_barra : "",
-    id_categoria: productData ? productData.id_categoria : "", // Guardamos el id_categoria
-    precio: productData ? productData.precio : "",
+    id_categoria: productData ? productData.id_categoria : "",
+    precio: productData ? productData.precio : 0,
     stock: productData ? productData.stock : 0,
+    cantCaja: productData ? productData.cantCaja : 0,
+    forma_farmaceutica: productData ? productData.forma_farmaceutica : "",
+    concentracion: productData ? productData.concentracion : "",
+    uso_res: productData ? productData.uso_res : false,
   });
 
   const [snackbar, setSnackbar] = useState({
@@ -43,8 +48,12 @@ function FormProduct({ handleClose, refetchProducts, productData }) {
         nombre: productData.nombre,
         codigo_barra: productData.codigo_barra,
         id_categoria: productData.id_categoria,
-        precio: productData.precio,
+        precio: productData.precio ? productData.precio : 0,
         stock: productData.stock,
+        cantCaja: productData.cantCaja,
+        forma_farmaceutica: productData.forma_farmaceutica,
+        concentracion: productData.concentracion,
+        uso_res: productData.uso_res,
       });
     }
   }, [productData]);
@@ -53,6 +62,13 @@ function FormProduct({ handleClose, refetchProducts, productData }) {
     setProduct({
       ...product,
       [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleBooleanChange = (e) => {
+    setProduct({
+      ...product,
+      uso_res: e.target.value === "true",
     });
   };
 
@@ -98,6 +114,7 @@ function FormProduct({ handleClose, refetchProducts, productData }) {
     e.preventDefault();
     mutation.mutate();
   };
+  console.log(product);
 
   return (
     <>
@@ -117,10 +134,22 @@ function FormProduct({ handleClose, refetchProducts, productData }) {
           </Grid>
           <Grid item xs={12}>
             <TextField
-              label="Código de Barras"
+              label="Código"
               name="codigo_barra"
               variant="outlined"
               value={product.codigo_barra}
+              onChange={handleChange}
+              fullWidth
+              required
+              className={classes.input}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Cant. caj/paq"
+              name="cantCaja"
+              variant="outlined"
+              value={product.cantCaja}
               onChange={handleChange}
               fullWidth
               required
@@ -143,10 +172,10 @@ function FormProduct({ handleClose, refetchProducts, productData }) {
           </Grid>
           <Grid item xs={12}>
             <FormControl fullWidth required>
-              <InputLabel id="demo-simple-select-label">Categoría</InputLabel>
+              <InputLabel id="categoria-label">Categoría</InputLabel>
               <Select
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
+                labelId="categoria-label"
+                id="categoria-select"
                 name="id_categoria"
                 variant="outlined"
                 label="Categoría"
@@ -167,19 +196,24 @@ function FormProduct({ handleClose, refetchProducts, productData }) {
               </Select>
             </FormControl>
           </Grid>
-
-          {/* <Grid item xs={12}>
-            <TextField
-              label="Stock"
-              name="stock"
-              value={product.stock}
-              onChange={handleChange}
-              fullWidth
-              required
-              className={classes.input}
-              type="number"
-            />
-          </Grid> */}
+          <Grid item xs={12}>
+            <FormControl fullWidth>
+              <InputLabel id="uso-res-label">Uso Restringido</InputLabel>
+              <Select
+                labelId="uso-res-label"
+                id="uso-res-select"
+                name="uso_res"
+                variant="outlined"
+                label="Uso Restringido"
+                value={String(product.uso_res)}
+                onChange={handleBooleanChange}
+                className={classes.input}
+              >
+                <MenuItem value="true">SI</MenuItem>
+                <MenuItem value="false">NO</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
           <Grid item xs={6}>
             <Button
               variant="contained"
@@ -211,7 +245,6 @@ function FormProduct({ handleClose, refetchProducts, productData }) {
         </Grid>
       </form>
 
-      {/* Snackbar para mostrar mensajes */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={5000}

@@ -1,5 +1,5 @@
 {
-  "name": "webapp-minimarket",
+  "name": "webapp-inventory",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -16,6 +16,7 @@
     "@mui/icons-material": "^6.0.2",
     "@mui/material": "^6.0.2",
     "@react-pdf/renderer": "^4.0.0",
+    "date-fns": "^4.1.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",
@@ -23,7 +24,8 @@
     "react-dom": "^18.3.1",
     "react-query": "^3.39.3",
     "react-router-dom": "^6.26.2",
-    "react-swipeable-views": "^0.14.0"
+    "react-swipeable-views": "^0.14.0",
+    "react-to-print": "^3.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",

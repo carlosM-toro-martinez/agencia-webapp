@@ -604,7 +604,7 @@ const SalidaForm = ({
             <Button
               variant="contained"
               style={{
-                backgroundColor: "#3d97ef",
+                backgroundColor: "#f5f5f5",
                 color: "#fff",
                 fontWeight: "bold",
               }}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button, Grid, Typography } from "@material-ui/core";
+import { Button, Grid, Typography } from "@mui/material";
 import useStyles from "./denominacionForm.styles";
 import twoHundred from "../../../assets/images/200.jpg";
 import oneHundred from "../../../assets/images/100.jpg";

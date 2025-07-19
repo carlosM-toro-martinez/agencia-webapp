@@ -10,7 +10,8 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(2),
   },
   tableHeader: {
-    backgroundColor: "#3d97ef",
+    backgroundColor: "#f5f5f5",
+    textAlign: "center",
   },
 }));
 

@@ -41,7 +41,7 @@ function Trabajadores() {
           }}
         >
           {!isLoading && !error ? (
-            <TableTrabajadoresComponent trabajadores={data} />
+            <TableTrabajadoresComponent trabajadores={data} refetch={refetch} />
           ) : null}
           <Button
             variant="contained"

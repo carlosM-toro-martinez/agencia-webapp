@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { Paper, Typography, Button, Avatar, Divider, Box } from "@mui/material";
 import useStyles from "./profile.styles";
 import { MainContext } from "../../context/MainContext";
-import background from "../../assets/images/background.jpeg";
+import background from "../../assets/images/moneda.jpg";
 
 const ProfileComponent = () => {
   const { user } = useContext(MainContext);

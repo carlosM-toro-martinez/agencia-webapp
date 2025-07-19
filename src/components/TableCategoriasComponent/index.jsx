@@ -119,19 +119,19 @@ function TableCategoriasComponent({ categorias, refetchCategorias }) {
             <TableRow>
               <TableCell
                 className={classes.tableCell}
-                sx={{ color: "#fff", fontWeight: "bold" }}
+                sx={{ fontWeight: "bold" }}
               >
                 Nombre
               </TableCell>
               <TableCell
                 className={classes.tableCell}
-                sx={{ color: "#fff", fontWeight: "bold" }}
+                sx={{ fontWeight: "bold" }}
               >
                 Productos
               </TableCell>
               <TableCell
                 className={classes.tableCell}
-                sx={{ color: "#fff", fontWeight: "bold" }}
+                sx={{ fontWeight: "bold" }}
               >
                 Acciones
               </TableCell>
@@ -191,7 +191,7 @@ function TableCategoriasComponent({ categorias, refetchCategorias }) {
                       timeout="auto"
                       unmountOnExit
                     >
-                      <Box margin={1} sx={{ backgroundColor: "red" }}>
+                      <Box margin={1} sx={{ backgroundColor: "#f5f5f5" }}>
                         <Table size="small" aria-label="productos">
                           <TableHead>
                             <TableRow>

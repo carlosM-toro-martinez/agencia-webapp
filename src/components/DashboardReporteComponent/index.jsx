@@ -2,8 +2,9 @@ import React from "react";
 import almacen from "../../assets/images/icons/almacen.png";
 import caja from "../../assets/images/icons/caja.png";
 import ventas from "../../assets/images/icons/ventas.png";
-import alto from "../../assets/images/icons/alto.png";
+import proveedor from "../../assets/images/icons/proveedor.png";
 import clientes from "../../assets/images/icons/clientes.png";
+import producto from "../../assets/images/icons/producto.png";
 import useStyles from "./dasboardReporte.styles";
 import { Box, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
@@ -31,6 +32,16 @@ function DasboardReporteComponent() {
       image: clientes,
       title: "Clientes",
       path: "cliente",
+    },
+    {
+      image: proveedor,
+      title: "Proveedores",
+      path: "proveedor",
+    },
+    {
+      image: producto,
+      title: "Productos",
+      path: "producto",
     },
   ];
   const navigate = useNavigate();

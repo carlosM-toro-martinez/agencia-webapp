@@ -1,5 +1,5 @@
 import { makeStyles } from "@material-ui/core/styles";
-import conver from "../../../assets/images/icons/conver.png";
+import conver from "../../../assets/images/icons/logoWhite.png";
 
 export const useStyles = makeStyles((theme) => ({
   footer: {
@@ -21,15 +21,15 @@ export const useStyles = makeStyles((theme) => ({
     flex: 0.4,
   },
   logo: {
-    width: 300,
-    height: 70,
+    width: 250,
+    height: 100,
     backgroundImage: `url(${conver})`,
     backgroundSize: "cover",
     backgroundPosition: "center",
   },
   copyRight: {
     fontSize: "1.2rem",
-    marginLeft: "5rem",
+    color: theme.palette.text.secondary,
   },
   link: {
     color: theme.palette.text.secondary,

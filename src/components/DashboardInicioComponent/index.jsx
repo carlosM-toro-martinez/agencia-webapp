@@ -1,101 +1,111 @@
-import React from "react";
+import React, { useContext, useEffect } from "react";
 import { Grid, Typography, Paper } from "@material-ui/core";
-import { useStyles } from "./dashboardInicio.styles";
-import { Link } from "react-router-dom"; // Importa Link
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import { Link, useNavigate } from "react-router-dom";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import CategoryIcon from "@mui/icons-material/Category";
 import PeopleIcon from "@mui/icons-material/People";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
-import UndoIcon from "@mui/icons-material/Undo";
-import MoveUpIcon from "@mui/icons-material/MoveUp";
 import ReceiptIcon from "@mui/icons-material/Receipt";
-import CurrencyExchangeIcon from '@mui/icons-material/CurrencyExchange';
 import { Box } from "@mui/material";
+import MetricsMainComponent from "./MetricsMainComponent";
+import { useStyles } from "./dashboardInicio.styles";
+import { MainContext } from "../../context/MainContext";
 
 function DashboardInicioComponent() {
   const classes = useStyles();
+  const { user, superAdmin } = useContext(MainContext);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/login", { replace: true });
+    }
+  }, [user, navigate]);
 
   const items = [
     {
       title: "REPORTES",
-      icon: <ReceiptIcon sx={{ fontSize: "5rem" }} />,
-      path: "/reportes", // Ruta actualizada
+      icon: <ReceiptIcon className={classes.icon} />,
+      path: "/reportes",
+      color: "#1565c0",
     },
     {
       title: "ALMACÉN",
-      icon: <LocalShippingIcon sx={{ fontSize: "5rem" }} />,
-      path: "/almacenes", // Ruta actualizada
+      icon: <LocalShippingIcon className={classes.icon} />,
+      path: "/almacenes",
+      color: "#5d4037",
     },
-    {
-      title: "CATEGORÍAS",
-      icon: <CategoryIcon sx={{ fontSize: "5rem" }} />,
-      path: "/almacenes", // Ruta actualizada
-    },
+    // {
+    //   title: "CATEGORÍAS",
+    //   icon: <CategoryIcon className={classes.icon} />,
+    //   path: "/almacenes",
+    //   color: "#f57c00",
+    // },
     {
       title: "TRABAJADORES",
-      icon: <PeopleIcon sx={{ fontSize: "5rem" }} />,
-      path: "/trabajadores", // Ruta actualizada
+      icon: <PeopleIcon className={classes.icon} />,
+      path: "/trabajadores",
+      color: "#0288d1",
     },
-    {
-      title: "PRODUCTOS",
-      icon: <StorefrontIcon sx={{ fontSize: "5rem" }} />,
-      path: "/ventas", // Ruta actualizada
-    },
+    // {
+    //   title: "PRODUCTOS",
+    //   icon: <StorefrontIcon className={classes.icon} />,
+    //   path: "/ventas",
+    //   color: "#2e7d32",
+    // },
     {
       title: "CLIENTES",
-      icon: <PeopleIcon sx={{ fontSize: "5rem" }} />,
-      path: "/clientes", // Ruta actualizada
+      icon: <PeopleIcon className={classes.icon} />,
+      path: "/clientes",
+      color: "#66bb6a",
     },
     {
       title: "CAJA",
-      icon: <CreditCardIcon sx={{ fontSize: "5rem" }} />,
-      path: "/movimiento-caja", // Ruta actualizada
+      icon: <CreditCardIcon className={classes.icon} />,
+      path: "/movimiento-caja",
+      color: "#6a1b9a",
     },
     {
       title: "VENTAS",
-      icon: <AttachMoneyIcon sx={{ fontSize: "5rem" }} />,
-      path: "/ventas", // Ruta actualizada
+      icon: <AttachMoneyIcon className={classes.icon} />,
+      path: "/ventas",
+      color: "#fbc02d",
     },
     // {
-    //   title: "DEVOLUCIONES",
-    //   icon: <UndoIcon sx={{ fontSize: "5rem" }} />,
-    //   path: "/ventas", // Ruta actualizada (asumiendo que las devoluciones se manejan en ventas)
+    //   title: "MOVIMIENTOS",
+    //   icon: <MoveUpIcon className={classes.icon} />,
+    //   path: "/movimiento-inventario",
+    //   color: "#d84315",
     // },
-    // {
-    //   title: "PERFIL",
-    //   icon: <ReceiptIcon sx={{ fontSize: "5rem" }} />,
-    //   path: "/perfil", // Ruta actualizada
-    // },
-    {
-      title: "MOVIMIENTOS",
-      icon: <MoveUpIcon sx={{ fontSize: "5rem" }} />,
-      path: "/movimiento-inventario", // Ruta actualizada
-    },
-    {
-      title: "VENTAS POR PAGAR",
-      icon: <CurrencyExchangeIcon sx={{ fontSize: "5rem" }} />,
-      path: "/ventas_por_pagar", 
-    },
   ];
 
   return (
-    <Grid container spacing={2} className={classes.container}>
-      {items.map((item, index) => (
-        <Grid item xs={4} sm={3} md={3} key={index}>
-          <Link to={item.path} style={{ textDecoration: "none" }}>
-            <Paper className={classes.paper} elevation={1}>
-              <Box className={classes.icon}>{item.icon}</Box>
-              <Typography variant="h6" className={classes.title}>
-                {item.title}
-              </Typography>
-            </Paper>
-          </Link>
-        </Grid>
-      ))}
-    </Grid>
+    <>
+      <Box className={classes.carouselContainer}>
+        <Box className={classes.carousel}>
+          {items.map((item, index) => (
+            <Link to={item.path} style={{ textDecoration: "none" }} key={index}>
+              <Paper
+                className={classes.paperItem}
+                style={{ backgroundColor: item.color }}
+              >
+                {item.icon}
+                <Typography variant="h6" className={classes.title}>
+                  {item.title}
+                </Typography>
+              </Paper>
+            </Link>
+          ))}
+        </Box>
+      </Box>
+      <Box sx={{ marginTop: "2rem" }}>
+        <Paper>
+          <MetricsMainComponent />
+        </Paper>
+      </Box>
+    </>
   );
 }
 

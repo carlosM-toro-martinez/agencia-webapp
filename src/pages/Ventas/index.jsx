@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import DashboardComponent from "../../components/DashboardComponent";
 import DrawerComponent from "../../components/DrawerComponent";
 import {
@@ -25,7 +25,8 @@ import TableVentasReport from "../../components/DashboardReporteComponent/Report
 import ventasTodayService from "../../async/services/get/ventasTodayService.js";
 import empty from "../../assets/images/empty.svg";
 function Ventas() {
-  const { data } = useContext(MainContext);
+  const { data, user } = useContext(MainContext);
+
   const {
     data: reportVentas,
     isLoading: isLoadingVentas,
@@ -75,6 +76,12 @@ function Ventas() {
   const handleProductSelect = (id) => {
     setSelectedProductId(id);
   };
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/login", { replace: true });
+    }
+  }, [user, navigate]);
 
   return (
     <>

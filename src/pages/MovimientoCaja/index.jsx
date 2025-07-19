@@ -8,9 +8,7 @@ import { CircularProgress } from "@mui/material";
 
 function MovimientoCaja() {
   const { data, isLoading, error, refetch } = useContext(MainContext);
-  // const { data, isLoading, error, refetch } = useQuery(`cajaService`, () =>
-  //   cajaService()
-  // );
+
   return (
     <>
       <DrawerComponent>

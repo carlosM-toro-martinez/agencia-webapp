@@ -7,7 +7,7 @@ import {
   List,
   ListItem,
   ListItemText,
-} from "@material-ui/core";
+} from "@mui/material";
 import TwitterIcon from "@mui/icons-material/Twitter";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import FacebookIcon from "@mui/icons-material/Facebook";
@@ -23,12 +23,8 @@ function FooterComponent() {
       <Box className={classes.container}>
         <Box className={classes.logoSection}>
           <Box className={classes.logo} />
-          <Typography
-            variant="body2"
-            color="textSecondary"
-            className={classes.copyRight}
-          >
-            © 2024 Company
+          <Typography className={classes.copyRight} sx={{ marginLeft: "3rem" }}>
+            © 2025 Company
           </Typography>
         </Box>
         <Box
@@ -56,7 +52,7 @@ function FooterComponent() {
 
             <IconButton
               aria-label="whatsapp"
-              href="https://wa.me/59178738075"
+              href="https://wa.me/59178635209"
               target="_blank"
               rel="noopener noreferrer"
               className={classes.iconButton}
@@ -66,7 +62,7 @@ function FooterComponent() {
             </IconButton>
             <IconButton
               aria-label="facebook"
-              href="https://www.facebook.com/RoboticaPotosiLEGOEducativa"
+              href="https://www.facebook.com/profile.php?id=100087789513331"
               target="_blank"
               rel="noopener noreferrer"
               className={classes.iconButton}
@@ -76,7 +72,7 @@ function FooterComponent() {
             </IconButton>
             <IconButton
               aria-label="instagram"
-              href="https://www.instagram.com/cit_brilliant_minds?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+              href="https://www.instagram.com/carlosmariotoromartinez/"
               target="_blank"
               rel="noopener noreferrer"
               className={classes.iconButton}
@@ -96,11 +92,14 @@ function FooterComponent() {
               <ListItem style={{ padding: 0 }}>
                 <ListItemText
                   primary="Dirección"
-                  secondary="Calle Hoyos Nro. 12 entre Millares y Bulevar (Mul. Esmeralda Amb.24), Potosi"
+                  secondary="Calle 10 de noviembre Nro 348 entre Primero de mayo y Cooncordia, Potosi"
                 />
               </ListItem>
               <ListItem style={{ padding: 0 }}>
-                <ListItemText primary="Correo" secondary="Info@cit.com.bo" />
+                <ListItemText
+                  primary="Correo"
+                  secondary="carlostorom.96@gmail.com"
+                />
               </ListItem>
             </List>
           </Box>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   FormControl,
   MenuItem,
@@ -8,9 +8,10 @@ import {
   Paper,
   InputLabel,
   Select,
-} from "@material-ui/core";
+} from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { Typography, Autocomplete, TextField } from "@mui/material";
+import MyAutocomplete from "../../MyAutocomplete";
 
 const ProductoProveedorForm = ({
   proveedor,
@@ -23,6 +24,14 @@ const ProductoProveedorForm = ({
   handleOpenProveedorModal,
   isLoteProveedorLocked,
   setError,
+  setProductoName,
+  setProveedorName,
+  setLote,
+  lote,
+  fechaCaducidad,
+  setFechaCaducidad,
+  loteData,
+  productoName,
 }) => {
   const [errors, setErrors] = useState({
     proveedor: false,
@@ -57,124 +66,157 @@ const ProductoProveedorForm = ({
     setError(hasErrors);
   };
 
+  const generateRandomLote = () => {
+    let randomLote;
+    const maxAttempts = 100;
+    let attempt = 0;
+    do {
+      randomLote = Math.floor(100000 + Math.random() * 900000).toString();
+      attempt++;
+    } while (
+      loteData?.some((item) => item.numero_lote === randomLote) &&
+      attempt < maxAttempts
+    );
+
+    if (attempt < maxAttempts) {
+      setLote(randomLote);
+    } else {
+      alert("No se pudo generar un número de lote único, intenta de nuevo.");
+    }
+  };
+  const productosMemo = useMemo(() => productos, [productos]);
+  console.log("productosMemo length", productosMemo.length, productosMemo);
+
   return (
-    <Box style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 2,
+        p: 2,
+        overflowX: "auto",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <FormControl
+        error={errors.producto}
+        sx={{ minWidth: 200, flexShrink: 0 }}
+      >
+        {/* <Autocomplete
+          key="autocomplete-productos"
+          options={productosMemo}
+          getOptionLabel={(opt) =>
+            `${opt?.nombre || ""} ${opt?.forma_farmaceutica || ""} ${
+              opt?.concentracion || ""
+            }`
+          }
+          filterOptions={(opts, { inputValue }) =>
+            opts.filter((p) =>
+              p.nombre?.toLowerCase().includes(inputValue.toLowerCase())
+            )
+          }
+          isOptionEqualToValue={(opt, val) =>
+            opt.id_producto === val.id_producto
+          }
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Producto"
+              variant="outlined"
+              size="small"
+            />
+          )}
+        /> */}
+        <MyAutocomplete
+          options={productos}
+          getOptionLabel={(opt) =>
+            `${opt.nombre} ${opt.forma_farmaceutica ?? ""} ${
+              opt.concentracion ?? ""
+            }`
+          }
+          onChange={(opt) => {
+            setProducto(opt?.id_producto ?? null);
+            setProductoName(opt?.nombre ?? "");
+          }}
+          label="Producto"
+          placeholder="Buscar producto..."
+          disableClearable={true}
+          productoName={productoName}
+          producto={producto}
+        />
+      </FormControl>
       <Box
-        style={{
-          width: "100%",
+        sx={{
+          flexBasis: { xs: "100%", sm: "50%", md: "33.33%", lg: "15%" },
           display: "flex",
-          gap: 20,
-          alignItems: "flex-end",
+          gap: 1,
+          minWidth: 250,
         }}
       >
-        <FormControl style={{ width: "16rem" }} error={errors.producto}>
-          <Autocomplete
-            id="disable-close-on-select"
-            options={productos}
-            getOptionLabel={(option) =>
-              `${option.nombre} - ${option.codigo_barra}`
-            }
-            filterOptions={(options, { inputValue }) =>
-              options.filter(
-                (product) =>
-                  product.nombre
-                    .toLowerCase()
-                    .includes(inputValue.toLowerCase()) ||
-                  product.codigo_barra.includes(inputValue)
-              )
-            }
-            onChange={(event, newValue) => {
-              if (newValue) {
-                setProducto(newValue.id_producto);
-              }
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Buscar Producto"
-                variant="standard"
-                fullWidth
-              />
-            )}
-            isOptionEqualToValue={(option, value) =>
-              option.id_producto === value.id_producto
-            }
-            disableClearable
-            sx={{ width: "16rem" }}
-            error={errors.producto}
-          />
-        </FormControl>
         <Button
-          onClick={handleOpenProductoModal}
-          style={{
-            display: "flex",
-            justifyContent: "center",
+          onClick={generateRandomLote}
+          sx={{
+            whiteSpace: "nowrap",
+            fontWeight: "bold",
+            backgroundColor: "#2596be",
+            color: "#fff",
+            borderRadius: "3rem",
           }}
         >
-          <AddCircleOutlineIcon />
+          gen
         </Button>
-      </Box>
-      {/* {producto && (
-        <Typography>
-          Producto: {productos.find((p) => p.id_producto === producto)?.nombre}
-        </Typography>
-      )} */}
-
-      {errors.producto && (
-        <Typography
-          style={{
-            color: "red",
-            fontSize: ".9rem",
-            fontWeight: "normal",
+        <TextField
+          variant="outlined"
+          size="small"
+          label="Número de Lote"
+          value={lote}
+          onChange={(e) => {
+            setLote(e.target.value);
           }}
-        >
-          Este campo es requerido
-        </Typography>
-      )}
+        />
+      </Box>
 
-      <Box
-        style={{
-          display: "flex",
-          alignItems: "flex-end",
-          gap: 20,
-        }}
-      >
-        <FormControl style={{ width: "16rem" }} error={errors.proveedor}>
-          <InputLabel id="demo-simple-select-label">Proveedor</InputLabel>
-          <Select
-            labelId="demo-simple-select-label"
-            label="proveedor"
-            id="demo-simple-select"
-            value={proveedor}
-            onChange={(e) => setProveedor(e.target.value)}
-            disabled={isLoteProveedorLocked}
-          >
-            {proveedores.map((proveedor) => (
-              <MenuItem
-                key={proveedor.id_proveedor}
-                value={proveedor.id_proveedor}
-              >
-                {proveedor.nombre}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <Button
-          onClick={handleOpenProveedorModal}
-          style={{
-            display: "flex",
-            justifyContent: "center",
+      <FormControl size="small" sx={{ minWidth: 200, flexShrink: 0 }}>
+        <Autocomplete
+          size="small"
+          sx={{ minWidth: 200, flexShrink: 0 }}
+          options={proveedores}
+          getOptionLabel={(option) => option.nombre.toUpperCase()}
+          value={
+            proveedores.find((prov) => prov.id_proveedor === proveedor) || null
+          }
+          onChange={(event, newValue) => {
+            if (newValue) {
+              setProveedor(newValue.id_proveedor);
+              setProveedorName(newValue.nombre);
+            } else {
+              setProveedor("");
+              setProveedorName("");
+            }
           }}
           disabled={isLoteProveedorLocked}
-        >
-          <AddCircleOutlineIcon color="red" />
-        </Button>
+          renderInput={(params) => <TextField {...params} label="Proveedor" />}
+        />
+      </FormControl>
+      <Box
+        sx={{
+          flexBasis: { xs: "100%", sm: "50%", md: "33.33%", lg: "15%" },
+          minWidth: 250,
+        }}
+      >
+        <TextField
+          variant="outlined"
+          size="small"
+          label="Fecha de Caducidad"
+          type="date"
+          value={fechaCaducidad}
+          onChange={(e) => setFechaCaducidad(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          fullWidth
+        />
       </Box>
-      {errors.proveedor && (
-        <Typography style={{ color: "red" }}>
-          Este campo es requerido
-        </Typography>
-      )}
     </Box>
   );
 };
