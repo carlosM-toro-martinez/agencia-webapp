@@ -9,10 +9,10 @@ import useStyles from "../table.styles";
 const headCells = [
   { id: "nombre", numeric: false, disablePadding: false, label: "Nombre" },
   {
-    id: "codigo_barra",
+    id: "Precio",
     numeric: false,
     disablePadding: false,
-    label: "Código",
+    label: "Precio",
   },
   // {
   //   id: "Cantidad",
@@ -31,6 +31,12 @@ const headCells = [
     numeric: true,
     disablePadding: false,
     label: "Cantidad (c/p)",
+  },
+  {
+    id: "Unidades sueltas",
+    numeric: true,
+    disablePadding: false,
+    label: "Unidades sueltas",
   },
   // {
   //   id: "forma_farmaceutica",

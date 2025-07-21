@@ -224,9 +224,7 @@ export default function TableProductsComponent({
                     >
                       {row.nombre || "N/A"}
                     </TableCell>
-                    <TableCell align="left">
-                      {row.codigo_barra || "N/A"}
-                    </TableCell>
+                    <TableCell align="left">{row.precio || "N/A"} Bs</TableCell>
                     <TableCell
                       sx={{
                         color: row.stock > 0 ? "green" : "red",
@@ -244,6 +242,17 @@ export default function TableProductsComponent({
                       {row.cantCaja
                         ? Math.floor(row.subCantidad / row.cantCaja)
                         : "N/A"}
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        color: row.stock > 0 ? "green" : "red",
+                      }}
+                    >
+                      {row.subCantidad === row.stock
+                        ? row.stock
+                        : row.subCantidad -
+                            Math.floor(row.subCantidad / row.cantCaja) *
+                              row.cantCaja ?? "N/A"}
                     </TableCell>
 
                     {/* <TableCell align="left">

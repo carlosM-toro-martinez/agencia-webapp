@@ -75,8 +75,7 @@ function FormMetodoVenta({ handleClose, refetchMetodoVentas, productos }) {
     if (selectedProduct) {
       const data = {
         descripcion,
-        cantidad_por_metodo:
-          selectedOption === "cantidad" ? cantidadPorMetodo : 0,
+        cantidad_por_metodo: cantidadPorMetodo,
         precio,
         peso_por_metodo:
           selectedOption === "peso_por_unidad"
