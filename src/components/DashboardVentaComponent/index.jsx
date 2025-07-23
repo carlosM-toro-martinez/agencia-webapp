@@ -62,7 +62,8 @@ function DashboardVentaComponent({
     loteID,
     price,
     cantidadPorUnidad,
-    cantidad
+    cantidad,
+    metodo
   ) => {
     setProductosSeleccionados((prev) => {
       return [
@@ -79,6 +80,7 @@ function DashboardVentaComponent({
           cantidad_unidad: cantidadPorUnidad ? cantidadPorUnidad : 0,
           cantidad: cantidad ? cantidad : 0,
           id_trabajador: user?.id_trabajador,
+          metodo: metodo,
         },
       ];
     });
@@ -138,11 +140,13 @@ function DashboardVentaComponent({
             p.cantidad_unidad
           ),
           cantidad_unidad: p.cantidad_unidad,
-          descripcion: p.descripcion,
-          precio: p.precio,
+          detalle: p.metodo ? p.metodo.descripcion : "unidad",
+          precio: p.metodo ? p.metodo.precio : p.precio,
           clienteId: ventaData.clienteId,
+          cantidadMetod: p.metodo ? p.metodo.cantidad_por_metodo : null,
         })),
       };
+      console.log(payload);
 
       if (movimientoInventario) {
         return salidaInventarioAddService(payload);
@@ -163,7 +167,6 @@ function DashboardVentaComponent({
         refetchCaja();
         if (cancelForm) cancelForm();
         if (setRestoreDenom) setRestoreDenom();
-        // handlePrint();
       },
       onError: (error) => {
         setProductosSeleccionados([]);
@@ -208,7 +211,7 @@ function DashboardVentaComponent({
         : item.cantidadPorUnidad;
       const cantidadPorCaja = item.cantidadPorCaja;
       const cantidad = item.cantidad;
-      const metodoSeleccionado = item.metodoSeleccionado;
+      const metodoSeleccionado = item.newValue.metodoVentaBase;
       const cantidadMetodo = item.cantidadMetodo;
       const precioManual = item.precioManual;
 
@@ -292,7 +295,8 @@ function DashboardVentaComponent({
               peso,
               precioMetodo,
               loteData.subCantidad,
-              loteData.cantidad
+              loteData.cantidad,
+              metodoSeleccionado
             );
           } else {
             addProducto(
@@ -302,7 +306,8 @@ function DashboardVentaComponent({
               peso,
               precioMetodo,
               unidadesRestantes,
-              Math.floor(cantidadCajas)
+              Math.floor(cantidadCajas),
+              metodoSeleccionado
             );
 
             unidadesRestantes = 0;
@@ -324,7 +329,8 @@ function DashboardVentaComponent({
                   loteData.lote.id_lote,
                   priceProduct,
                   loteData.subCantidad,
-                  loteData.cantidad
+                  loteData.cantidad,
+                  newValue.metodoVentaBase
                 );
               } else {
                 addProducto(
@@ -333,7 +339,8 @@ function DashboardVentaComponent({
                   loteData.lote.id_lote,
                   priceProduct,
                   cantidadPorUnidad,
-                  cajasRestantes
+                  cajasRestantes,
+                  newValue.metodoVentaBase
                 );
                 cantidadPorUnidad = 0;
               }

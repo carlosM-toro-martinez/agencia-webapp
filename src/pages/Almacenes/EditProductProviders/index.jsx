@@ -37,7 +37,6 @@ function EditProductProviders() {
     const producto = data.find((p) => p.id_producto === productoId);
     const lote = producto?.lotes.find((l) => l.id_lote === loteId);
 
-    // Aquí haces la petición al backend para guardar los datos
     console.log("Guardar proveedor para:", {
       id_detalle_compra: lote.id_detalle_compra,
       nuevoProveedor: lote.proveedor,

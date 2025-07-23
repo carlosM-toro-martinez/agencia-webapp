@@ -66,11 +66,9 @@ function TableTrabajadoresComponent({ trabajadores, onEdit, refetch }) {
   const handleSnackbarClose = () => {
     setSnackbar({ ...snackbar, open: false });
   };
-  console.log(trabajadores);
   const trabajadoresActivos = trabajadores.filter(
     (trabajador) => trabajador.estado === true
   );
-  console.log(trabajadoresActivos);
 
   return (
     <Paper>

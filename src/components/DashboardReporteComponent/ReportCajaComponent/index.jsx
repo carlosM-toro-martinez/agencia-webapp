@@ -50,7 +50,6 @@ function ReportCajaComponent() {
       fetchReport();
     }
   };
-  console.log(cajas);
 
   return (
     <DrawerComponent>

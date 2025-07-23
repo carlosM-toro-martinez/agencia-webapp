@@ -90,7 +90,6 @@ const LoteFormComponent = ({
 
     setErrors(newErrors);
     setError(hasErrors);
-    console.log(errors.loteExists);
   };
 
   const porcentajes = Array.from(

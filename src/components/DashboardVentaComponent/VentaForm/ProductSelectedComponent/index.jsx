@@ -40,8 +40,6 @@ const ProductSelectedComponent = ({
   const classes = useStyles();
 
   const calcularPrecio = (producto) => {
-    console.log(producto);
-
     if (producto.precioManual) {
       return producto.precioManual;
     }
@@ -237,7 +235,6 @@ const ProductSelectedComponent = ({
               const { cantUnitLimit, pesoLimit, newValue, metodoSeleccionado } =
                 producto;
               const totalSubCantidad = producto?.newValue?.totalSubCantidad;
-              console.log(producto.newValue.metodoVentaBase);
 
               return (
                 <TableRow key={index}>

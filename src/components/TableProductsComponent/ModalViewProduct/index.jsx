@@ -39,7 +39,6 @@ function ModalViewProduct({
 }) {
   const [editedSalePrice, setEditedSalePrice] = useState("");
   const [editedProviderId, setEditedProviderId] = useState("");
-  console.log(proveedoresData);
 
   const { data, isLoading, error } = useQuery(
     `InventarioProducts`,

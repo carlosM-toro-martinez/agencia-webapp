@@ -31,7 +31,6 @@ import { MainContext } from "../../../../context/MainContext";
 function TableVentasReport({ reportData, ventaToday, refetchVentas, caja }) {
   const [utilidades, setUtilidades] = useState([]);
   const [utilidadGlobal, setUtilidadGlobal] = useState(0);
-  console.log(reportData);
 
   useEffect(() => {
     if (reportData && !ventaToday) {
@@ -41,6 +40,7 @@ function TableVentasReport({ reportData, ventaToday, refetchVentas, caja }) {
 
   const calcularUtilidades = (ventas) => {
     let totalGlobalUtilidad = 0;
+
     const resultados = ventas.map((venta) => {
       let utilidadVenta = 0;
       const detallesConUtilidad = [];
@@ -48,46 +48,41 @@ function TableVentasReport({ reportData, ventaToday, refetchVentas, caja }) {
       venta.detallesVenta.forEach((detalle) => {
         const lote = detalle.lote;
         const detalleCompra = lote.detalleCompra;
-
         let precioCompraPorUnidad;
-        if (detalleCompra.subCantidad && detalleCompra.subCantidad > 0) {
+        let cantidadVendida;
+        let utilidadDetalle;
+
+        if (
+          detalle.cantidadMetod &&
+          detalle.detalle &&
+          detalle.detalle !== "unidad"
+        ) {
           precioCompraPorUnidad =
             parseFloat(detalleCompra.precio_unitario) / lote.cantidadPorCaja;
-        } else if (lote.peso && lote.peso > 0) {
-          if (detalle.peso < 1) {
-            precioCompraPorUnidad =
-              parseFloat(detalleCompra.precio_unitario) / parseFloat(lote.peso);
-            precioCompraPorUnidad =
-              precioCompraPorUnidad * parseFloat(detalle.peso);
-          } else {
-            precioCompraPorUnidad =
-              parseFloat(detalleCompra.precio_unitario) / lote.peso;
-          }
+
+          cantidadVendida = detalle.subCantidad > 0 ? detalle.subCantidad : 0;
+          const precioVentaUnidad =
+            parseFloat(detalle.precio_unitario) / detalle.cantidadMetod;
+          utilidadDetalle =
+            cantidadVendida *
+            (parseFloat(precioVentaUnidad) - precioCompraPorUnidad);
         } else {
-          precioCompraPorUnidad = parseFloat(detalleCompra.precio_unitario);
+          precioCompraPorUnidad =
+            parseFloat(detalleCompra.precio_unitario) / lote.cantidadPorCaja;
+
+          cantidadVendida = detalle.subCantidad > 0 ? detalle.subCantidad : 0;
+
+          utilidadDetalle =
+            cantidadVendida *
+            (parseFloat(detalle.precio_unitario) - precioCompraPorUnidad);
         }
-
-        const cantidadVendida =
-          detalle.subCantidad > 0
-            ? detalle.subCantidad
-            : detalle.cantidad > 0
-            ? detalle.cantidad
-            : detalle.peso > 0
-            ? detalle.peso
-            : 0;
-
-        const utilidadDetalle =
-          cantidadVendida < 1
-            ? parseFloat(detalle.precio_unitario) - precioCompraPorUnidad
-            : cantidadVendida *
-              (parseFloat(detalle.precio_unitario) - precioCompraPorUnidad);
 
         utilidadVenta += utilidadDetalle;
 
         detallesConUtilidad.push({
           producto: detalle.producto || "Producto desconocido",
           cantidadVendida,
-          precioCompraPorUnidad: precioCompraPorUnidad?.toFixed(2),
+          precioCompraPorUnidad: precioCompraPorUnidad.toFixed(2),
           precioVentaPorUnidad: parseFloat(detalle.precio_unitario).toFixed(2),
           utilidadDetalle: utilidadDetalle.toFixed(2),
         });
@@ -383,7 +378,9 @@ function VentaRow({ venta, ventaToday, refetchVentas, caja, utilidades }) {
                     <TableCell>Producto</TableCell>
                     {/* <TableCell>Cantidad</TableCell> */}
                     <TableCell>Cantidad por Unidad</TableCell>
-                    <TableCell>Precio Unitario</TableCell>
+                    <TableCell>Presentacion</TableCell>
+                    <TableCell>Precio</TableCell>
+                    <TableCell>Precio T</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -392,7 +389,16 @@ function VentaRow({ venta, ventaToday, refetchVentas, caja, utilidades }) {
                       <TableCell>{detalle?.producto?.nombre}</TableCell>
                       {/* <TableCell>{detalle.cantidad}</TableCell> */}
                       <TableCell>{detalle.subCantidad}</TableCell>
+                      <TableCell sx={{ textTransform: "capitalize" }}>
+                        {detalle.detalle ? detalle.detalle : "Unidad"}
+                      </TableCell>
                       <TableCell>{detalle.precio_unitario}</TableCell>
+                      <TableCell>
+                        {detalle.cantidadMetod
+                          ? (detalle.subCantidad / detalle.cantidadMetod) *
+                            detalle.precio_unitario
+                          : detalle.subCantidad * detalle.precio_unitario}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

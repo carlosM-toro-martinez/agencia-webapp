@@ -85,7 +85,6 @@ const ProductoProveedorForm = ({
     }
   };
   const productosMemo = useMemo(() => productos, [productos]);
-  console.log("productosMemo length", productosMemo.length, productosMemo);
 
   return (
     <Box

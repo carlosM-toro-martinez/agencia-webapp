@@ -98,8 +98,6 @@ const ProductoAutocompleteComponent = ({
             });
           }}
           renderOption={(props, option) => {
-            console.log(option);
-
             const nombre = option.nombre || "";
             //const prov = option.metodoVentaBase ? "" : "b";
             const stock = option.totalSubCantidad ?? 0;

@@ -168,7 +168,6 @@ const VentaForm = ({
       productos?.map((producto) => [producto.id_producto, producto])
     ).values(),
   ];
-  console.log(productos);
 
   // const productosUnicosFiltrados = productos.flatMap((producto) => {
   //   const mapaProveedores = new Map();
@@ -203,8 +202,6 @@ const VentaForm = ({
   //   });
   //   return data;
   // });
-
-  //console.log(productos);
 
   return (
     <Box sx={{ padding: 2 }}>

@@ -130,7 +130,6 @@ export default function TableProductsComponent({
     {
       onSuccess: () => {
         handleCloseModals();
-        console.log("Detalle de compra actualizado exitosamente");
       },
       onError: (error) => {
         console.error(
@@ -151,7 +150,6 @@ export default function TableProductsComponent({
     },
     {
       onSuccess: (response) => {
-        console.log("Mutación exitosa:", response);
         refetchProducts();
         handleCloseModals();
       },

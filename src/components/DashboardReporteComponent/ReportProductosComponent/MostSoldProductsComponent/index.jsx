@@ -35,7 +35,6 @@ function MostSoldProductsComponent() {
   }
 
   const productos = data?.productos ?? [];
-  console.log(productos.length);
 
   return (
     <Box sx={{ mt: 2 }}>

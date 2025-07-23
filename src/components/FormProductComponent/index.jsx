@@ -18,7 +18,6 @@ import categoriasService from "../../async/services/get/categoriasService";
 
 function FormProduct({ handleClose, refetchProducts, productData }) {
   const classes = useStyles();
-  console.log(productData);
 
   const [productId, setProductId] = useState(
     productData ? productData.id_producto : null
@@ -114,7 +113,6 @@ function FormProduct({ handleClose, refetchProducts, productData }) {
     e.preventDefault();
     mutation.mutate();
   };
-  console.log(product);
 
   return (
     <>
