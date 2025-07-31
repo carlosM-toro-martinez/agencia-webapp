@@ -32,6 +32,8 @@ const ProductoProveedorForm = ({
   setFechaCaducidad,
   loteData,
   productoName,
+  productoSelected,
+  setProductoSelected,
 }) => {
   const [errors, setErrors] = useState({
     proveedor: false,
@@ -138,12 +140,14 @@ const ProductoProveedorForm = ({
           onChange={(opt) => {
             setProducto(opt?.id_producto ?? null);
             setProductoName(opt?.nombre ?? "");
+            setProductoSelected(opt);
           }}
           label="Producto"
           placeholder="Buscar producto..."
           disableClearable={true}
           productoName={productoName}
           producto={producto}
+          setProductoSelected={setProductoSelected}
         />
       </FormControl>
       <Box

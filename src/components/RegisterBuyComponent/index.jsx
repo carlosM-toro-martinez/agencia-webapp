@@ -33,6 +33,8 @@ const RegisterBuyComponent = ({
   const [fechaCaducidad, setFechaCaducidad] = useState("");
   const [proveedor, setProveedor] = useState("");
   const [producto, setProducto] = useState("");
+  const [productoSelected, setProductoSelected] = useState("");
+
   const [productoName, setProductoName] = useState("");
   const [proveedorName, setProveedorName] = useState("");
   const [cantidad, setCantidad] = useState(null);
@@ -63,59 +65,6 @@ const RegisterBuyComponent = ({
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
   };
-
-  // const detalleCompraMutation = useMutation(detalleCompraAddServices, {
-  //   onSuccess: (response) => {
-  //     setDetalleCompraId(response.id_detalle);
-  //     const newLote = {
-  //       id_producto: producto,
-  //       numero_lote: lote,
-  //       fecha_ingreso: getLocalDateTime(),
-  //       fecha_caducidad: fechaCaducidad,
-  //       cantidad: cantidad ? cantidad : 0,
-  //       precio_unitario: precio,
-  //       peso: peso ? peso : 0,
-  //       subCantidad: subCantidad ? subCantidad * cantidad : cantidad * 1,
-  //       cantidadPorCaja: subCantidad > 0 ? subCantidad : 1,
-  //       id_detalle_compra: response.id_detalle,
-  //     };
-  //     loteMutation.mutate(newLote);
-  //   },
-  //   onError: (error) => {
-  //     setSnackbar({
-  //       open: true,
-  //       message: `Error al guardar el detalle de compra: ${error.message}`,
-  //       severity: "error",
-  //     });
-  //   },
-  // });
-
-  // const loteMutation = useMutation(loteAddServices, {
-  //   onSuccess: () => {
-  //     setSnackbar({
-  //       open: true,
-  //       message: "Lote creado exitosamente!",
-  //       severity: "success",
-  //     });
-  //     setLoteNumber(lote);
-  //     setIsLoteProveedorLocked(true);
-  //     setFechaIngreso("");
-  //     setFechaCaducidad("");
-  //     setCantidad("");
-  //     setPrecio("");
-  //     setSubCantidad(null);
-  //     setPeso("");
-  //     setDetalleCompraId(null);
-  //   },
-  //   onError: (error) => {
-  //     setSnackbar({
-  //       open: true,
-  //       message: `Error al crear el lote: ${error.message}`,
-  //       severity: "error",
-  //     });
-  //   },
-  // });
-
   const handleSave = () => {
     setLoteNumber(lote);
     const newBuy = {
@@ -274,6 +223,8 @@ const RegisterBuyComponent = ({
               setFechaCaducidad={setFechaCaducidad}
               loteData={lotes}
               productoName={productoName}
+              productoSelected={productoSelected}
+              setProductoSelected={setProductoSelected}
             />
             <LoteFormComponent
               lote={lote}
@@ -295,6 +246,9 @@ const RegisterBuyComponent = ({
               setSubCantidad={setSubCantidad}
               precioVenta={precioVenta}
               setPrecioVenta={setPrecioVenta}
+              producto={producto}
+              productoSelected={productoSelected}
+              setProductoSelected={setProductoSelected}
             />
           </Grid>
           <Box sx={{ display: "flex", gap: 10 }}>

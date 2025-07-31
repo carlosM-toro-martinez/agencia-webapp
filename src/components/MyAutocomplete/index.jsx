@@ -124,6 +124,7 @@ export default function MyAutocomplete({
   disableClearable = false,
   productoName,
   producto,
+  setProductoSelected,
 }) {
   const classes = useStyles();
   const [inputValue, setInputValue] = useState("");
@@ -184,6 +185,7 @@ export default function MyAutocomplete({
     setSelected(null);
     setActiveIndex(-1);
     setShowList(false);
+    setProductoSelected();
     if (onChange) onChange(null);
   }
 

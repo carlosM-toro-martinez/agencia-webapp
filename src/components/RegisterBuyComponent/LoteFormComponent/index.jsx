@@ -1,34 +1,21 @@
 import React, { useEffect, useState } from "react";
-import {
-  Grid,
-  InputAdornment,
-  TextField,
-  Box,
-  Button,
-  Snackbar,
-  Alert,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-} from "@mui/material";
+import { InputAdornment, TextField, Box } from "@mui/material";
 
 const LoteFormComponent = ({
   lote,
-  setLote,
   fechaCaducidad,
-  setFechaCaducidad,
   cantidad,
   setCantidad,
   precio,
   setPrecio,
-  loteData,
   setError,
   isLoteProveedorLocked,
   subCantidad,
   setSubCantidad,
   precioVenta,
   setPrecioVenta,
+  productoSelected,
+  setProductoSelected,
 }) => {
   const [selectedPercent, setSelectedPercent] = useState(30);
   const [errors, setErrors] = useState({
@@ -50,6 +37,14 @@ const LoteFormComponent = ({
   }, [precio, selectedPercent, subCantidad]);
 
   useEffect(() => {
+    if (productoSelected?.cantCaja) {
+      setSubCantidad(productoSelected.cantCaja);
+    } else {
+      setSubCantidad();
+    }
+  }, [productoSelected]);
+
+  useEffect(() => {
     validateForm();
   }, [lote, fechaCaducidad]);
 
@@ -62,14 +57,6 @@ const LoteFormComponent = ({
     };
 
     let hasErrors = false;
-
-    // if (
-    //   loteData?.some((item) => item.numero_lote === lote) &&
-    //   !isLoteProveedorLocked
-    // ) {
-    //   newErrors.loteExists = true;
-    //   hasErrors = true;
-    // }
 
     if (!lote && !isLoteProveedorLocked) {
       newErrors.lote = true;
@@ -166,42 +153,6 @@ const LoteFormComponent = ({
         />
       </Box>
 
-      {/* <Box
-        sx={{
-          flexBasis: { xs: "100%", sm: "50%", md: "33.33%", lg: "15%" },
-          minWidth: 250,
-          display: "flex",
-        }}
-      >
-        <TextField
-          variant="outlined"
-          size="small"
-          label="Precio de venta"
-          type="number"
-          value={precioVenta || ""}
-          onChange={(e) => setPrecioVenta(e.target.value)}
-          InputProps={{
-            endAdornment: <InputAdornment position="end">Bs</InputAdornment>,
-          }}
-          fullWidth
-        />
-        <FormControl size="small" sx={{ flexShrink: 0 }}>
-          <InputLabel id="label-proveedor">%</InputLabel>
-          <Select
-            labelId="label-proveedor"
-            label="%"
-            //value={proveedor}
-            value={selectedPercent}
-            onChange={(e) => setSelectedPercent(e.target.value)}
-          >
-            {porcentajes.map((p) => (
-              <MenuItem key={p} value={p}>
-                {p}%
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box> */}
       {/* <Snackbar
         open={errors.loteExists}
         autoHideDuration={10000}

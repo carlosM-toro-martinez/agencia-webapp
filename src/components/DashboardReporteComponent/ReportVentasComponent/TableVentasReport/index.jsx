@@ -286,6 +286,8 @@ function VentaRow({ venta, ventaToday, refetchVentas, caja, utilidades }) {
   );
 
   const handleAnularVenta = (ventaAAnular) => {
+    console.log(ventaAAnular);
+
     let transformVenta = ventaAAnular.detallesVenta.map((detalle) => ({
       id_producto: detalle.id_producto,
       nombre: detalle.producto.nombre,
@@ -302,6 +304,7 @@ function VentaRow({ venta, ventaToday, refetchVentas, caja, utilidades }) {
       id_caja: caja?.caja?.id_caja || 1,
       fecha_venta: getLocalDateTime(),
       total: ventaAAnular?.total,
+      metodo_pago: venta.metodo_pago,
     }));
     if (transformVenta?.length === 0) {
       transformVenta = [

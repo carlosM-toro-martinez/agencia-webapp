@@ -27,12 +27,35 @@ import empty from "../../assets/images/empty.svg";
 function Ventas() {
   const { data, user } = useContext(MainContext);
 
+  const sumarTotalPorQR = (ventas) => {
+    return ventas
+      .filter((venta) => venta.metodo_pago === "QR")
+      .reduce((acc, venta) => acc + parseFloat(venta.total), 0);
+  };
+
+  const sumarTotalContado = (ventas) => {
+    return ventas
+      .filter((venta) => venta.metodo_pago === "Contado")
+      .reduce((acc, venta) => acc + parseFloat(venta.total), 0);
+  };
+
   const {
     data: reportVentas,
     isLoading: isLoadingVentas,
     isError: isErrorVentas,
     refetch: refetchVentas,
   } = useQuery("ventasToday", ventasTodayService);
+
+  const totalQR =
+    reportVentas && Array.isArray(reportVentas)
+      ? sumarTotalPorQR(reportVentas)
+      : 0;
+
+  const totalContado =
+    reportVentas && Array.isArray(reportVentas)
+      ? sumarTotalContado(reportVentas)
+      : 0;
+
   const { data: productos, isLoading: isLoadingProductos } = useQuery(
     "products",
     productosService
@@ -147,6 +170,31 @@ function Ventas() {
                 >
                   Ventas de hoy
                 </Typography>
+                <Box sx={{ display: "flex", gap: 10 }}>
+                  <Typography
+                    component={"h3"}
+                    style={{
+                      textAlign: "center",
+                      fontSize: "1.2rem",
+                      fontWeight: "normal",
+                      marginTop: "1rem",
+                    }}
+                  >
+                    Ventas por QR: Bs. {totalQR.toFixed(2)}
+                  </Typography>
+                  <Typography
+                    component={"h3"}
+                    style={{
+                      textAlign: "center",
+                      fontSize: "1.2rem",
+                      fontWeight: "normal",
+                      marginTop: "1rem",
+                    }}
+                  >
+                    Ventas al contado: Bs. {totalContado.toFixed(2)}
+                  </Typography>
+                </Box>
+
                 {reportVentas &&
                 Array.isArray(reportVentas) &&
                 reportVentas.length > 0 ? (
