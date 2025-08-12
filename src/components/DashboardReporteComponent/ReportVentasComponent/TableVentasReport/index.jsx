@@ -286,8 +286,6 @@ function VentaRow({ venta, ventaToday, refetchVentas, caja, utilidades }) {
   );
 
   const handleAnularVenta = (ventaAAnular) => {
-    console.log(ventaAAnular);
-
     let transformVenta = ventaAAnular.detallesVenta.map((detalle) => ({
       id_producto: detalle.id_producto,
       nombre: detalle.producto.nombre,

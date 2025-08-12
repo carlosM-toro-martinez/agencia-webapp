@@ -14,13 +14,14 @@ import DrawerComponent from "../../DrawerComponent";
 import ventasService from "../../../async/services/get/ventasService.js";
 import reportVentasService from "../../../async/services/get/reportVentasService.js";
 import TableVentasReport from "./TableVentasReport";
-import VentasResumeTable from "./VentasResumeTable"; // Asegúrate de tenerlo creado
+import VentasResumeTable from "./VentasResumeTable";
+import SalesVsBuyReport from "./SalesVsBuyReport";
 
 function ReportVentasComponent() {
   const [idInicio, setIdInicio] = useState(null);
   const [idFinal, setIdFinal] = useState(null);
   const [fechasAgrupadas, setFechasAgrupadas] = useState([]);
-  const [modoResumen, setModoResumen] = useState("ventas"); // "ventas" o "productos"
+  const [modoResumen, setModoResumen] = useState("ventas");
 
   const { data: ventas, isLoading: isLoadingVentas } = useQuery(
     "ventas",
@@ -133,6 +134,7 @@ function ReportVentasComponent() {
               >
                 <MenuItem value="ventas">Ver resumen por Ventas</MenuItem>
                 <MenuItem value="productos">Ver resumen por Producto</MenuItem>
+                <MenuItem value="utilidades">Ver utilidades</MenuItem>
               </Select>
             </FormControl>
 
@@ -154,8 +156,10 @@ function ReportVentasComponent() {
             reportData &&
             (modoResumen === "ventas" ? (
               <TableVentasReport reportData={reportData} />
-            ) : (
+            ) : modoResumen === "productos" ? (
               <VentasResumeTable data={reportData} />
+            ) : (
+              <SalesVsBuyReport data={reportData} />
             ))
           )}
         </Box>
